@@ -12,6 +12,7 @@ private:
     IteratorType m_begin;
     IteratorType m_end;
 public:
+    Interval() = default;
     Interval(IteratorType begin, IteratorType end);
 public:
     Interval(const Interval<TIterator> & cpy);
