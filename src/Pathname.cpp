@@ -28,7 +28,7 @@ void Pathname::Normalize(string & pathname)
     while (regex_search(pathname.c_str() + diff, rslt, ms_search_dir_regex) &&
         rslt.size() > 1)
     {
-        name_split.push_back(rslt[1].str);
+        name_split.push_back(rslt[1].str());
         diff = rslt.suffix().first - pathname.c_str();
         m_last_suffix.first = rslt.suffix().first;
         m_last_suffix.second = rslt.suffix().second;

@@ -60,8 +60,8 @@ template<typename TIterator>
 Interval<TIterator> & Interval<TIterator>::
     operator=(Interval<TIterator> && mov)
 {
-    m_begin = cpy.m_begin;
-    m_end = cpy.m_end;
+    m_begin = mov.m_begin;
+    m_end = mov.m_end;
     mov.m_begin = mov.m_end;
 }
 
