@@ -144,7 +144,7 @@ Pathname & Pathname::operator=(Pathname && mov)
 
 bool Pathname::operator==(const Pathname & pathname) const
 {
-    return pathname.m_pathname_str.compare(pathname.m_pathname_str) == 0; 
+    return m_pathname_str.compare(pathname.m_pathname_str) == 0; 
 }
 
 bool Pathname::operator!=(const Pathname & pathname) const
