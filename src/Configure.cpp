@@ -41,6 +41,11 @@ void Configure::Set(const cfg::Setting & setting)
     if (Validate(setting.StringBufferSize, m_minimum_setting.StringBufferSize,
         m_maximum_setting.StringBufferSize))
             m_value_setting.StringBufferSize = setting.StringBufferSize;
+    if (Validate(setting.PathnameManagementQueueSize, 
+        m_minimum_setting.PathnameManagementQueueSize,
+        m_maximum_setting.PathnameManagementQueueSize))
+            m_value_setting.PathnameManagementQueueSize = 
+                setting.PathnameManagementQueueSize;
 }
 
 bool Configure::EnableThread() const
@@ -56,4 +61,9 @@ std::size_t Configure::GetThreadSize() const
 std::size_t Configure::GetStringBufferSize() const
 {
     return m_value_setting.StringBufferSize;
+}
+
+std::size_t Configure::GetPathnameManagementQueueSize() const
+{
+    return m_value_setting.PathnameManagementQueueSize;
 }

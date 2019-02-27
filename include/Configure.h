@@ -36,6 +36,7 @@ public:
 public:
     std::size_t GetThreadSize() const;
     std::size_t GetStringBufferSize() const;
+    std::size_t GetPathnameManagementQueueSize() const;
 };
 
 #endif //!CONFIGURE_H_
