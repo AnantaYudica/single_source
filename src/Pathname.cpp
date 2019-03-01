@@ -152,22 +152,27 @@ bool Pathname::operator!=(const Pathname & pathname) const
     return !operator==(pathname);
 }
 
-string Pathname::GetPathname() const
+string Pathname::String() const
 {
     return m_pathname_str;
 }
 
-string Pathname::GetDirname() const
+string Pathname::DirectoryString() const
 {
     return string(m_dirname_strpos.Begin(), m_dirname_strpos.End());
 }
 
-string Pathname::GetFilename() const
+string Pathname::FileString() const
+{
+    return string(m_filename_strpos.Begin(), m_extname_strpos.End());
+}
+
+string Pathname::NameString() const
 {
     return string(m_filename_strpos.Begin(), m_filename_strpos.End());
 }
 
-std::string Pathname::GetExtname() const
+std::string Pathname::ExtensionString() const
 {
     return string(m_extname_strpos.Begin(), m_extname_strpos.End());
 }

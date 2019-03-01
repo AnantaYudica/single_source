@@ -43,7 +43,7 @@ void Management::Push(const Pathname & pathname,
 {
     char key_cstr[ms_key_alloc_size];
     auto key_size = snprintf(key_cstr, ms_key_alloc_size, "%zu", key);
-    auto pathname_str = pathname.GetPathname();
+    auto pathname_str = pathname.String();
     for (std::size_t i = 0; i < ms_pathname_alloc_size; ++i)
     {
         if (i < pathname_str.size())

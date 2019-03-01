@@ -44,10 +44,11 @@ public:
     bool operator==(const Pathname & pathname) const;
     bool operator!=(const Pathname & pathname) const;
 public:
-    std::string GetPathname() const;
-    std::string GetDirname() const;
-    std::string GetFilename() const;
-    std::string GetExtname() const;
+    std::string String() const;
+    std::string DirectoryString() const;
+    std::string FileString() const;
+    std::string NameString() const;
+    std::string ExtensionString() const;
 public:
     bool IsFile() const;
     bool IsDirectory() const;
