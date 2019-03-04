@@ -13,10 +13,10 @@ public:
     typedef std::streampos PosisitionType;
     typedef std::streamsize SizeType;
     typedef pathname::Management::KeyValueType PathnameKeyType;
-private:
-    std::mutex m_lock;
 protected:
+    std::mutex m_lock;
     std::filebuf m_filebuf;
+private:
     std::ios_base::openmode m_openmode;
 protected:
     File(std::ios_base::openmode);
@@ -37,9 +37,7 @@ public:
 public:
     void Close();
 public:
-    void Lock();
-    void UnLock();
-    bool TryLock();
+    bool IsLock();
 };
 
 #endif //!FILE_H_

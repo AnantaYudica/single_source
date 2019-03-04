@@ -38,17 +38,12 @@ void File::Close()
     if (m_filebuf.is_open()) m_filebuf.close();
 }
 
-void File::Lock()
+bool File::IsLock()
 {
-    m_lock.lock();
-}
-
-void File::UnLock()
-{
-    m_lock.unlock();
-}
-
-bool File::TryLock()
-{
-    return m_lock.try_lock();
+    if(m_lock.try_lock())
+    {
+        m_lock.unlock();
+        return false;
+    }
+    return true;
 }
