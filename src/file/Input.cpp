@@ -3,57 +3,63 @@
 using namespace std;
 using namespace file;
 
-Input::Input()
+Input::Input() :
+    File(ios_base::in)
 {}
 
-Input::Input(typename Pathname::WeakPointerType in_pathname_ptr) :
-    m_in_pathname_ptr(in_pathname_ptr)
+
+typename Input::SizeType 
+Input::Read(char * buffer, const SizeType & size)
 {
-    auto lock_in_pathname_ptr = m_in_pathname_ptr.lock();
-    m_in_filebuf.open(lock_in_pathname_ptr->GetPathname(), ios::in);
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return 0;
+    return m_filebuf.sgetn(buffer, size);
 }
 
-Input::~Input()
+typename Input::PosisitionType 
+Input::SetPosition(const PosisitionType & pos)
 {
-    if(m_in_filebuf.is_open())
-        m_in_filebuf.close();
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return -1;
+    return m_filebuf.pubseekpos(pos, ios_base::in);
 }
 
-bool Input::Open(typename Pathname::WeakPointerType in_pathname_ptr)
+typename Input::PosisitionType 
+Input::MovePosition(const OffsetType & off)
 {
-    m_in_pathname_ptr = in_pathname_ptr;
-    auto lock_in_pathname_ptr = m_in_pathname_ptr.lock();
-    return m_in_filebuf.open(lock_in_pathname_ptr->GetPathname(), ios::in);
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return -1;
+    return m_filebuf.pubseekoff(off, ios_base::cur, ios_base::in);
 }
 
-std::size_t Input::Read(char * buffer, const std::size_t & size)
+typename Input::PosisitionType 
+Input::BeginPosition()
 {
-    if(!m_in_filebuf.is_open()) return 0;
-    return m_in_filebuf.sgetn(buffer, size);
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return -1;
+    return m_filebuf.pubseekpos(0, ios_base::in);
+
+}
+
+typename Input::PosisitionType 
+Input::EndPosition()
+{
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return -1;
+    return m_filebuf.pubseekoff(0, ios_base::end, ios_base::in);
+}
+
+typename Input::PosisitionType 
+Input::CurrentPosition()
+{
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return -1;
+    return m_filebuf.pubseekoff(0, ios_base::cur, ios_base::in);
 }
 
 bool Input::IsEndOfFile()
 {
-    if(!m_in_filebuf.is_open()) return false;
-    return m_in_filebuf.sgetc() == EOF;
-}
-
-bool Input::IsOpen()
-{
-    return m_in_filebuf.is_open();
-}
-
-void Input::Lock()
-{
-    return m_lock.lock();
-}
-
-void Input::UnLock()
-{
-    return m_lock.unlock();
-}
-
-bool Input::TryLock()
-{
-    return m_lock.try_lock();
+    lock_guard<mutex> lock{m_lock};
+    if(!m_filebuf.is_open()) return false;
+    return m_filebuf.sgetc() == EOF;
 }

@@ -1,23 +1,20 @@
 #ifndef FILE_INPUT_H_
 #define FILE_INPUT_H_
 
-#include <fstream>
-#include <mutex>
-
-#include "Pathname.h"
+#include "../File.h"
+#include "../Pathname.h"
 
 namespace file
 {
 
-class Input
+class Input : public virtual File
 {
-private:
-    typename Pathname::WeakPointerType m_in_pathname_ptr;
-    std::filebuf m_in_filebuf;
-    std::mutex m_lock;
+public:
+    typedef typename File::OffsetType OffsetType;
+    typedef typename File::PosisitionType PosisitionType;
+    typedef typename File::SizeType SizeType;
 public:
     Input();
-    Input(typename Pathname::WeakPointerType in_pathname_ptr);
 public:
     Input(const Input & cpy) = delete;
     Input(Input && mov) = delete;
@@ -25,18 +22,15 @@ public:
     Input & operator=(const Input &) = delete;
     Input & operator=(Input &&) = delete;
 public:
-    ~Input();
+    SizeType Read(char * buffer, const SizeType & size);
 public:
-    bool Open(typename Pathname::WeakPointerType in_pathname_ptr);
-public:
-    std::size_t Read(char * buffer, const std::size_t & size);
+    PosisitionType SetPosition(const PosisitionType & pos);
+    PosisitionType MovePosition(const OffsetType & off);
+    PosisitionType BeginPosition();
+    PosisitionType EndPosition();
+    PosisitionType CurrentPosition();
 public:
     bool IsEndOfFile();
-    bool IsOpen();
-public:
-    void Lock();
-    void UnLock();
-    bool TryLock();
 };
 
 }
