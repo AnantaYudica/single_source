@@ -14,7 +14,6 @@ namespace pathname
 
 class Management
 {
-    
 public:
     typedef int KeyValueType;
 private:
@@ -54,20 +53,34 @@ private:
     Pathname GetPathname();
     KeyValueType GetKey();
 private:
-    bool NextPathname(std::streampos & curr_pos);
-    bool NextKey(std::streampos & curr_pos);
+    void Back(std::streampos & curr_pos);
+    void Back(const std::ios_base::openmode & mode);
 private:
-    bool Find(const Pathname & pathname);
-    bool Find(const KeyValueType & key); 
+    bool NextPathname(const std::ios_base::openmode & mode);
+    bool NextKey(const std::ios_base::openmode & mode);
+private:
+    bool Find(const Pathname & pathname, 
+        const std::ios_base::openmode & mode);
+    bool Find(const KeyValueType & key, 
+        const std::ios_base::openmode & mode);
+    bool Find(const KeyValueType & key, Pathname & pathname,
+        const std::ios_base::openmode & mode); 
 private:
     void Update(const KeyValueType & key);
     void Update(const KeyValueType & key, const Pathname & pathname);
+private:
+    void Erase();
 public:
-    KeyValueType GetKey(Pathname pathname);
-    Pathname GetPathname(KeyValueType key);
+    KeyValueType Register(Pathname pathname);
 public:
-    bool Has(Pathname pathname);
+    Pathname Unregister(KeyValueType key);
+    void Unregister(Pathname pathname);
+public:
+    Pathname Get(KeyValueType key);
+    KeyValueType Get(Pathname pathname);
+public:
     bool Has(KeyValueType key);
+    bool Has(Pathname pathname);
 };
 
 }
