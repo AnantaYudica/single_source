@@ -97,11 +97,11 @@ void Pathname::DirFileExtname(const string & pathname,
 }
 
 Pathname::Pathname() :
-    m_pathname_str(""),
-    m_dirname_strpos(m_pathname_str.end(), m_pathname_str.end()),
-    m_filename_strpos(m_pathname_str.end(), m_pathname_str.end()),
-    m_extname_strpos(m_pathname_str.end(), m_pathname_str.end())
-{}
+    m_pathname_str("")
+{
+    DirFileExtname(m_pathname_str, m_dirname_strpos, 
+        m_filename_strpos, m_extname_strpos);
+}
     
 Pathname::Pathname(string pathname_str) :
     m_pathname_str(std::move(pathname_str))
@@ -111,11 +111,11 @@ Pathname::Pathname(string pathname_str) :
 }
 
 Pathname::Pathname(const Pathname & cpy) :
-    m_pathname_str(cpy.m_pathname_str),
-    m_dirname_strpos(cpy.m_dirname_strpos),
-    m_filename_strpos(cpy.m_filename_strpos),
-    m_extname_strpos(cpy.m_extname_strpos)
-{}
+    m_pathname_str(cpy.m_pathname_str)
+{
+    DirFileExtname(m_pathname_str, m_dirname_strpos, m_filename_strpos,
+        m_extname_strpos);
+}
 
 Pathname::Pathname(Pathname && mov) :
     m_pathname_str(std::move(mov.m_pathname_str)),
@@ -127,9 +127,8 @@ Pathname::Pathname(Pathname && mov) :
 Pathname & Pathname::operator=(const Pathname & cpy)
 {
     m_pathname_str = cpy.m_pathname_str;
-    m_dirname_strpos = cpy.m_dirname_strpos;
-    m_filename_strpos = cpy.m_filename_strpos;
-    m_extname_strpos = cpy.m_extname_strpos;
+    DirFileExtname(m_pathname_str, m_dirname_strpos, m_filename_strpos,
+        m_extname_strpos);
     return *this;
 }
 
@@ -192,8 +191,6 @@ bool Pathname::IsDirectory() const
 
 Pathname::operator bool() const
 {
-    return m_dirname_strpos.Begin() != m_dirname_strpos.End() && 
-        m_filename_strpos.Begin() != m_filename_strpos.End() &&
-        m_extname_strpos.Begin() != m_extname_strpos.End();
+    return !m_pathname_str.empty();
 }
 
