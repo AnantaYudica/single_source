@@ -29,7 +29,7 @@ bool File::Open(const PathnameKeyType & pathname_key)
     if (pathname_key < 0) return false;
     lock_guard<mutex> lock(m_lock);
     auto pathname = pathname::Management::GetInstance().
-        GetPathname(pathname_key);
+        Get(pathname_key);
     return Open(pathname);
 }
 void File::Close()
