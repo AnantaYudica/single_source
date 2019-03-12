@@ -25,16 +25,17 @@ public:
     Node(const Node<TData> &) = default;
     Node(Node<TData> &&) = default;
 public:
-    virtual Pointer<Node<TData>> & Node(const Node<TData> &) = 0;
-    virtual Pointer<Node<TData>> & (Node<TData> &&) = 0;
+    virtual Node<TData> & operator=(const Node<TData> &) = 0;
+    virtual Node<TData> & operator=(Node<TData> &&) = 0;
 public:
-    virtual TNode & Emplace(TData & data) = 0;
+    virtual Node<TData> & Emplace(TData & data) = 0;
 public:
-    virtual TNode & Displace() = 0;
+    virtual Node<TData> & Displace() = 0;
 public:
-    virtual Pointer<Node<TData>> Parent() = 0;
-    virtual Pointer<Node<TData>> Right() = 0;
-    virtual Pointer<Node<TData>> Left() = 0;
+    virtual Pointer<Node<TData>> & Parent() = 0;
+    virtual Pointer<Node<TData>> & Right() = 0;
+    virtual Pointer<Node<TData>> & Left() = 0;
+public:
     virtual int Hight() = 0;
     virtual int Hight(int & set) = 0;
     virtual int Balance() = 0;
