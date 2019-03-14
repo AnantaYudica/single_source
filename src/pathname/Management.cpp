@@ -22,19 +22,19 @@ Management::Management() :
 
 Management::~Management()
 {
-    if (m_buff.is_open())
+    if (m_linear_buff.is_open())
     {
-        m_buff.close();
+        m_linear_buff.close();
         remove(m_pathname_str.c_str());
     }
 }
 
 bool Management::Open()
 {
-    if (m_buff.is_open())
+    if (m_linear_buff.is_open())
         return true;
     m_pathname_str = tmpnam(NULL);
-    return m_buff.open(m_pathname_str.c_str(), ios_base::out | 
+    return m_linear_buff.open(m_pathname_str.c_str(), ios_base::out | 
         ios_base::in | ios_base::trunc) != NULL;
 }
 
@@ -47,26 +47,26 @@ void Management::Push(const Pathname & pathname,
     for (std::size_t i = 0; i < ms_pathname_alloc_size; ++i)
     {
         if (i < pathname_str.size())
-            m_buff.sputc(pathname_str[i]);
+            m_linear_buff.sputc(pathname_str[i]);
         else
-            m_buff.sputc(ms_empty_ch);
+            m_linear_buff.sputc(ms_empty_ch);
     }
-    m_buff.sputc(ms_conj_ch);
+    m_linear_buff.sputc(ms_conj_ch);
     for (std::size_t i = 0; i < ms_key_alloc_size; ++i)
     {
         if (i < key_size)
-            m_buff.sputc(key_cstr[i]);
+            m_linear_buff.sputc(key_cstr[i]);
         else
-            m_buff.sputc(ms_empty_ch);
+            m_linear_buff.sputc(ms_empty_ch);
     }
-    m_buff.sputc(ms_end_ch);
+    m_linear_buff.sputc(ms_end_ch);
 }
 
 Pathname Management::GetPathname()
 {
     char buff_cstr[ms_pathname_alloc_size];
     char pathname_cstr[ms_pathname_alloc_size];
-    auto size = m_buff.sgetn(buff_cstr, ms_pathname_alloc_size);
+    auto size = m_linear_buff.sgetn(buff_cstr, ms_pathname_alloc_size);
     for (std::size_t i = 0; i < ms_pathname_alloc_size; ++i)
     {
         if (buff_cstr[i] == ms_conj_ch ||
@@ -84,7 +84,7 @@ typename Management::KeyValueType Management::GetKey()
 {
     char buff_cstr[ms_key_alloc_size];
     char key_cstr[ms_key_alloc_size];
-    auto size = m_buff.sgetn(buff_cstr, ms_key_alloc_size);
+    auto size = m_linear_buff.sgetn(buff_cstr, ms_key_alloc_size);
     for (std::size_t i = 0; i < ms_pathname_alloc_size; ++i)
     {
         if (buff_cstr[i] == ms_end_ch ||
@@ -106,46 +106,46 @@ void Management::Back(std::streampos & curr_pos)
 
 void Management::Back(const std::ios_base::openmode & mode)
 {
-    auto curr_pos = m_buff.pubseekoff(0, ios_base::cur, mode);
+    auto curr_pos = m_linear_buff.pubseekoff(0, ios_base::cur, mode);
     Back(curr_pos);
-    m_buff.pubseekpos(curr_pos, mode);
+    m_linear_buff.pubseekpos(curr_pos, mode);
 }
 
 bool Management::NextPathname(const std::ios_base::openmode & mode)
 {
-    auto curr_pos = m_buff.pubseekoff(0, ios_base::cur, mode);
+    auto curr_pos = m_linear_buff.pubseekoff(0, ios_base::cur, mode);
     auto curr_offset = curr_pos % ms_end_offset;
-    m_buff.pubseekoff(ms_end_offset - curr_offset, ios_base::cur, 
+    m_linear_buff.pubseekoff(ms_end_offset - curr_offset, ios_base::cur, 
         mode);
-    m_buff.in_avail() != EOF;
+    m_linear_buff.in_avail() != EOF;
 }
 
 bool Management::NextKey(const std::ios_base::openmode & mode)
 {
-    auto curr_pos = m_buff.pubseekoff(0, ios_base::cur, mode);
+    auto curr_pos = m_linear_buff.pubseekoff(0, ios_base::cur, mode);
     auto curr_offset = curr_pos % ms_end_offset;
     if (curr_offset <= ms_key_offset)
-        curr_pos = m_buff.pubseekoff(ms_key_offset - curr_offset, 
+        curr_pos = m_linear_buff.pubseekoff(ms_key_offset - curr_offset, 
             ios_base::cur, mode);
     else
-        curr_pos = m_buff.pubseekoff((ms_end_offset - curr_offset) +
+        curr_pos = m_linear_buff.pubseekoff((ms_end_offset - curr_offset) +
             ms_key_offset, ios_base::cur, mode);
-    m_buff.in_avail() != EOF;
+    m_linear_buff.in_avail() != EOF;
 }
 
 bool Management::Find(const Pathname & pathname, 
     const std::ios_base::openmode & mode)
 {
-    auto curr_pos = m_buff.pubseekpos(0, mode);
+    auto curr_pos = m_linear_buff.pubseekpos(0, mode);
     streampos old_pos = curr_pos;
     do
     {
         if (GetPathname() == pathname) 
         {
-            m_buff.pubseekpos(old_pos, mode);
+            m_linear_buff.pubseekpos(old_pos, mode);
             return true;
         }
-        old_pos = m_buff.pubseekoff(0, ios_base::cur, mode);
+        old_pos = m_linear_buff.pubseekoff(0, ios_base::cur, mode);
     } while(NextPathname(mode));
     return false;
 }
@@ -154,7 +154,7 @@ bool Management::Find(const KeyValueType & key,
     const std::ios_base::openmode & mode)
 {
     if (key >= m_size) return false;
-    m_buff.pubseekpos(key * ms_end_offset, mode);
+    m_linear_buff.pubseekpos(key * ms_end_offset, mode);
     return GetPathname();
 }
 
@@ -162,7 +162,7 @@ bool Management::Find(const KeyValueType & key, Pathname & pathname,
     const std::ios_base::openmode & mode)
 {
     if (key >= m_size) return false;
-    m_buff.pubseekpos(key * ms_end_offset, mode);
+    m_linear_buff.pubseekpos(key * ms_end_offset, mode);
     return (pathname = std::move(GetPathname()));
 }
 
@@ -191,7 +191,7 @@ void Management::Update(const KeyValueType & key, const Pathname & pathname)
 void Management::Erase()
 {
     for (size_t i = 0; i < ms_pathname_alloc_size; ++i)
-        m_buff.sputc(ms_empty_ch);
+        m_linear_buff.sputc(ms_empty_ch);
 }
 
 typename Management::KeyValueType 
@@ -216,7 +216,7 @@ Management::Register(Pathname pathname)
     else
     {
         key = m_size++;
-        m_buff.pubseekoff(0, ios_base::end, ios_base::out);
+        m_linear_buff.pubseekoff(0, ios_base::end, ios_base::out);
         Push(pathname, key);
     }
     Update(key, pathname);

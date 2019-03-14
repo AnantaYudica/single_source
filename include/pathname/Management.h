@@ -2,12 +2,16 @@
 #define PATHNAME_MANAGE_H_
 
 #include "../Pathname.h"
+#include "../file/format/tree/avl/Pointer.h"
+#include "../file/format/tree/avl/Node.h"
+#include "mgmt/rec/Tree.h"
 
 #include <map>
 #include <mutex>
 #include <fstream>
 #include <string>
 #include <deque>
+#include <cstdint>
 
 namespace pathname
 {
@@ -16,6 +20,8 @@ class Management
 {
 public:
     typedef int KeyValueType;
+    typedef mgmt::rec::Tree RecTreeType;
+    typedef file::format::tree::avl::Node<RecTreeType> TreeNodeType;
 private:
     static Management ms_instance;
     static constexpr std::size_t ms_pathname_alloc_size = 256;
@@ -33,7 +39,9 @@ private:
     std::map<KeyValueType, Pathname> m_pathname_map;
     std::deque<KeyValueType> m_key_queue;
     std::string m_pathname_str;
-    std::filebuf m_buff;
+    std::filebuf m_linear_buff;
+    std::filebuf m_tree_buff;
+    TreeNodeType m_tree_root;
     std::mutex m_lock;
 private:
     Management();
