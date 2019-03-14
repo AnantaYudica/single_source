@@ -9,15 +9,15 @@ template<typename TData>
 avl::intf::Node<TData> AVL::RotateRight(avl::intf::Node<TData> root)
 {
     if (!root) return {};
-    auto root_left = *root.Left();
-    auto root_left_right = *root_left.Right();
+    auto root_left = *(root.Left());
+    auto root_left_right = *(root_left.Right());
 
     root.Left() = root_left_right;
     if (root_left_right)
         root_left_right.Parent() = root;
     
     root_left.Right() = root;
-    root_left.Parent() = *root.Parent();
+    root_left.Parent() = *(root.Parent());
     root.Parent() = root_left;
 
     root.Hight(max(root.Left()->Hight(), root.Right()->Hight()) + 1);
@@ -29,16 +29,16 @@ avl::intf::Node<TData> AVL::RotateRight(avl::intf::Node<TData> root)
 template<typename TData>
 avl::intf::Node<TData> AVL::RotateLeft(avl::intf::Node<TData> root)
 {
-    if (!root) return {}
-    auto root_right = *root.Right();
-    auto root_right_left = *root_right.Left();
+    if (!root) return {};
+    auto root_right = *(root.Right());
+    auto root_right_left = *(root_right.Left());
 
     root.Right() = root_right_left;
     if (root_right_left)
         root_right_left.Parent() = root;
     
     root_right.Left() = root;
-    root_right.Parent() = *root.Parent();
+    root_right.Parent() = *(root.Parent());
     root.Parent() = root_right;
 
     root.Hight(max(root.Left()->Hight(), root.Right()->Hight()) + 1);
@@ -155,18 +155,18 @@ avl::intf::Node<TData> AVL::Erase(avl::intf::Node<TData> root)
     if (!has_left && has_right)
     {
         if (root.Parent()->Right() == root)
-            root.Parent()->Right() = root.Right();
+            root.Parent()->Right() = *(root.Right());
         else if (root.Parent()->Left() == root)
-            root.Parent()->Left() = root.Right();
-        root.Right()->Parent() = root.Parent();
+            root.Parent()->Left() = *(root.Right());
+        root.Right()->Parent() = *(root.Parent());
     }
     else if (has_left && !has_right)
     {
         if (root.Parent()->Right() == root)
-            root.Parent()->Right() = root.Left();
+            root.Parent()->Right() = *(root.Left());
         else if (root.Parent()->Left() == root)
-            root.Parent()->Left() = root.Left();
-        root.Left()->Parent() = root.Parent();
+            root.Parent()->Left() = *(root.Left());
+        root.Left()->Parent() = *(root.Parent());
     }
     else if (has_left && has_right)
     {
