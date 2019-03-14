@@ -1,14 +1,10 @@
 #ifndef FILE_FORMAT_TREE_AVL_NODE_H_
 #define FILE_FORMAT_TREE_AVL_NODE_H_
 
-#include "struc/tree/avl/intf/Node.h"
-#include "struc/tree/avl/intf/Pointer.h"
-#include "Pointer.h"
+#include "Node.defn.h"
+#include "Pointer.defn.h"
 
-#include <fstream>
-#include <string>
 #include <utility>
-#include <cstdint>
 #include <cstring>
 
 namespace file
@@ -21,104 +17,7 @@ namespace avl
 {
 
 template<typename TData>
-class Node :
-    public struc::tree::avl::intf::Node<TData>
-{
-public:
-    typedef struc::tree::avl::intf::Pointer<Node<TData>> PointerInterfaceType;
-    typedef Pointer<Node<TData>> PointerType;
-public:
-    typedef TData DataType;
-public:
-    typedef std::uint8_t FlagValueType;
-    typedef std::uint32_t HightValueType;
-    typedef std::uint64_t PositionType;
-private:
-    typedef std::uint8_t FlagReadWrite;
-private:
-    constexpr static std::size_t ms_flagOffset = 0;
-    constexpr static std::size_t ms_hightOffset = sizeof(FlagValueType);
-    constexpr static std::size_t ms_parentPositionOffset =
-        ms_hightOffset + sizeof(HightValueType);
-    constexpr static std::size_t ms_rightPositionOffset =
-        ms_parentPositionOffset + sizeof(PositionType);
-    constexpr static std::size_t ms_leftPositionOffset =
-        ms_rightPositionOffset + sizeof(PositionType);
-    constexpr static std::size_t ms_dataOffset =
-        ms_leftPositionOffset + sizeof(PositionType);
-    constexpr static std::size_t ms_endOffset = 
-        ms_dataOffset + sizeof(TData);
-private:
-    constexpr static FlagReadWrite ms_rwFlag = 0x01;
-    constexpr static FlagReadWrite ms_rwHight = 0x02;
-    constexpr static FlagReadWrite ms_rwParentPosition = 0x04;
-    constexpr static FlagReadWrite ms_rwRightPosition = 0x08;
-    constexpr static FlagReadWrite ms_rwLeftPosition = 0x10;
-    constexpr static FlagReadWrite ms_rwData = 0x20;
-private:
-    std::streampos m_position;
-    FlagValueType m_flag;
-    HightValueType m_hight;
-    PositionType m_parentPosition;
-    PositionType m_rightPosition;
-    PositionType m_leftPosition;
-    std::filebuf * m_filebuffer;
-    PointerInterfaceType * m_Parent;
-    PointerInterfaceType * m_right;
-    PointerInterfaceType * m_left;
-    TData m_data;
-public:
-    inline Node();
-    inline Node(std::filebuf * filebuffer);
-    inline Node(std::filebuf * filebuffer, std::streampos position);
-public:
-    inline ~Node(); 
-public:
-    inline Node(const Node<TData> & cpy);
-    inline Node(Node<TData> && mov);
-public:
-    inline Node<TData> & operator=(const Node<TData> & cpy);
-    inline Node<TData> & operator=(Node<TData> && mov);
-private:
-    inline void Default();
-private:
-    template<typename TValue>
-    inline TValue ReadValue(std::streampos position);
-    template<typename TValue>
-    inline void WriteValue(const TValue & val, std::streampos position);
-private:
-    inline void Read(std::uint8_t flags = 0xFF);
-    inline void Write(std::uint8_t flags = 0xFF);
-public:
-    inline Node<TData> & Emplace(TData & data);
-public:
-    inline Node<TData> & Displace();
-public:
-    inline PointerInterfaceType & Parent();
-    inline void Parent(const PositionType & new_position);
-public:
-    inline PointerInterfaceType & Right();
-    inline void Right(const PositionType & new_position);
-public:
-    inline PointerInterfaceType & Left();
-    inline void Left(const PositionType & new_position);
-public:
-    inline int Hight();
-    inline int Hight(int & set);
-    inline int Balance();
-    inline TData Value();
-    inline void Swap(Node<TData> & node);
-public:
-    inline bool IsDeleted();
-public:
-    inline bool operator==(Node<TData> other) const;
-    inline bool operator!=(Node<TData> other) const;
-public:
-    inline operator bool();
-};
-
-template<typename TData>
-inline Node<TData>::Node() :
+Node<TData>::Node() :
     m_filebuffer(nullptr),
     m_position(-1),
     m_flag(0),
@@ -126,13 +25,13 @@ inline Node<TData>::Node() :
     m_parentPosition(-1),
     m_rightPosition(-1),
     m_leftPosition(-1),
-    m_Parent(nullptr),
+    m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
 {}
 
 template<typename TData>
-inline Node<TData>::Node(std::filebuf * filebuffer) :
+Node<TData>::Node(std::filebuf * filebuffer) :
     m_filebuffer(filebuffer),
     m_position(-1),
     m_flag(0),
@@ -140,13 +39,13 @@ inline Node<TData>::Node(std::filebuf * filebuffer) :
     m_parentPosition(-1),
     m_rightPosition(-1),
     m_leftPosition(-1),
-    m_Parent(nullptr),
+    m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
 {}
 
 template<typename TData>
-inline Node<TData>::Node(std::filebuf * filebuffer, std::streampos position) :
+Node<TData>::Node(std::filebuf * filebuffer, std::streampos position) :
     m_filebuffer(filebuffer),
     m_position(position),
     m_flag(0),
@@ -154,26 +53,26 @@ inline Node<TData>::Node(std::filebuf * filebuffer, std::streampos position) :
     m_parentPosition(-1),
     m_rightPosition(-1),
     m_leftPosition(-1),
-    m_Parent(nullptr),
+    m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
 {
-    Read();
-    m_Parent = new PointerType(*this, PointerType::Way::parent);
-    m_right = new PointerType(*this, PointerType::Way::right);
-    m_left = new PointerType(*this, PointerType::Way::left);
+    if (position != -1) Read();
+    m_parent = new PointerType(this, PointerType::Way::parent);
+    m_right = new PointerType(this, PointerType::Way::right);
+    m_left = new PointerType(this, PointerType::Way::left);
 }
 
 template<typename TData>
-inline Node<TData>::~Node()
+Node<TData>::~Node()
 {
-    if (m_Parent) delete m_Parent;
+    if (m_parent) delete m_parent;
     if (m_right) delete m_right;
     if (m_left) delete m_left;
 }
 
 template<typename TData>
-inline Node<TData>::Node(const Node<TData> & cpy) :
+Node<TData>::Node(const Node<TData> & cpy) :
     m_filebuffer(cpy.m_filebuffer),
     m_position(cpy.m_position),
     m_flag(cpy.m_flag),
@@ -181,17 +80,17 @@ inline Node<TData>::Node(const Node<TData> & cpy) :
     m_parentPosition(cpy.m_parentPosition),
     m_rightPosition(cpy.m_rightPosition),
     m_leftPosition(cpy.m_leftPosition),
-    m_Parent(nullptr),
+    m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
 {
-    m_Parent = new PointerType(*this, PointerType::Way::parent);
-    m_right = new PointerType(*this, PointerType::Way::right);
-    m_left = new PointerType(*this, PointerType::Way::left);
+    m_parent = new PointerType(this, PointerType::Way::parent);
+    m_right = new PointerType(this, PointerType::Way::right);
+    m_left = new PointerType(this, PointerType::Way::left);
 }
 
 template<typename TData>
-inline Node<TData>::Node(Node<TData> && mov) :
+Node<TData>::Node(Node<TData> && mov) :
     m_filebuffer(mov.m_filebuffer),
     m_position(mov.m_position),
     m_flag(mov.m_flag),
@@ -199,7 +98,7 @@ inline Node<TData>::Node(Node<TData> && mov) :
     m_parentPosition(mov.m_parentPosition),
     m_rightPosition(mov.m_rightPosition),
     m_leftPosition(mov.m_leftPosition),
-    m_Parent(mov.m_Parent),
+    m_parent(mov.m_parent),
     m_right(mov.m_right),
     m_left(mov.m_left)
 {
@@ -207,7 +106,7 @@ inline Node<TData>::Node(Node<TData> && mov) :
 }
 
 template<typename TData>
-inline Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
+Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
 {
     m_filebuffer = cpy.m_filebuffer;
     m_position = cpy.m_position;
@@ -216,23 +115,23 @@ inline Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
     m_parentPosition = cpy.m_parentPosition;
     m_rightPosition = cpy.m_rightPosition;
     m_leftPosition = cpy.m_leftPosition;
-    m_Parent = new PointerType(*this, PointerType::Way::parent);
-    m_right = new PointerType(*this, PointerType::Way::right);
-    m_left = new PointerType(*this, PointerType::Way::left);
+    m_parent = new PointerType(this, PointerType::Way::parent);
+    m_right = new PointerType(this, PointerType::Way::right);
+    m_left = new PointerType(this, PointerType::Way::left);
     return *this;
 }
 
 template<typename TData>
-inline Node<TData> & Node<TData>::operator=(Node<TData> && mov)
+Node<TData> & Node<TData>::operator=(Node<TData> && mov)
 {
-    m_filebuffer = mov.m_filebuffer);
-    m_position = mov.m_position);
+    m_filebuffer = mov.m_filebuffer;
+    m_position = mov.m_position;
     m_flag = mov.m_flag;
     m_hight = mov.m_hight;
     m_parentPosition = mov.m_parentPosition;
     m_rightPosition = mov.m_rightPosition;
     m_leftPosition = mov.m_leftPosition;
-    m_Parent = mov.m_Parent;
+    m_parent = mov.m_parent;
     m_right = mov.m_right;
     m_left = mov.m_left;
 
@@ -241,7 +140,23 @@ inline Node<TData> & Node<TData>::operator=(Node<TData> && mov)
 }
 
 template<typename TData>
-inline void Node<TData>::Default()
+Node<TData> & Node<TData>::operator=(const NodeInterfaceType & cpy)
+{
+    auto ptr = dynamic_cast<const Node<TData> *>(&cpy);
+    if (ptr) return *this = *ptr;
+    return *this;
+}
+
+template<typename TData>
+Node<TData> & Node<TData>::operator=(NodeInterfaceType && mov)
+{
+    auto ptr = dynamic_cast<Node<TData> *>(&mov);
+    if (ptr) return *this = std::move(*ptr);
+    return *this;
+}
+
+template<typename TData>
+void Node<TData>::Default()
 {
     m_filebuffer = nullptr;
     m_position = -1;
@@ -250,14 +165,14 @@ inline void Node<TData>::Default()
     m_parentPosition = -1;
     m_rightPosition = -1;
     m_leftPosition = -1;
-    m_Parent = nullptr;
+    m_parent = nullptr;
     m_right = nullptr;
     m_left = nullptr;
 }
 
 template<typename TData>
 template<typename TValue>
-inline TValue Node<TData>::ReadValue(std::streampos position)
+TValue Node<TData>::ReadValue(std::streampos position)
 {
     char buff[sizeof(TValue)];
     TValue value;
@@ -269,20 +184,20 @@ inline TValue Node<TData>::ReadValue(std::streampos position)
 
 template<typename TData>
 template<typename TValue>
-inline void Node<TData>::WriteValue(const TValue & val, 
+void Node<TData>::WriteValue(const TValue & val, 
     std::streampos position)
 {
     char buff[sizeof(TValue)];
-    memccpy(buff, (const char *)&val, sizeof(TValue));
+    memcpy(buff, (const char *)&val, sizeof(TValue));
     m_filebuffer->pubseekpos(position);
     m_filebuffer->sputn(buff, sizeof(buff));
 }
 
 template<typename TData>
-inline void Node<TData>::Read(std::uint8_t flags)
+void Node<TData>::Read(std::uint8_t flags)
 {
     if (flags & ms_rwFlag)
-        m_flag = ReadValue<FlagType>(m_position + ms_flagOffset);
+        m_flag = ReadValue<FlagValueType>(m_position + ms_flagOffset);
     if (flags & ms_rwHight)
         m_hight = ReadValue<HightValueType>(m_position + ms_hightOffset);
     if (flags & ms_rwParentPosition)
@@ -291,18 +206,18 @@ inline void Node<TData>::Read(std::uint8_t flags)
     if (flags & ms_rwRightPosition)
         m_rightPosition = ReadValue<PositionType>(m_position + 
             ms_rightPositionOffset);
-    if (flag & ms_rwLeftPosition)
+    if (flags & ms_rwLeftPosition)
         m_leftPosition = ReadValue<PositionType>(m_position + 
             ms_leftPositionOffset);
-    if (flag & ms_rwData)
+    if (flags & ms_rwData)
         m_data = ReadValue<DataType>(m_position + ms_dataOffset);
 }
 
 template<typename TData>
-inline void Node<TData>::Write(std::uint8_t flags)
+void Node<TData>::Write(std::uint8_t flags)
 {
     if (flags & ms_rwFlag)
-        WriteValue<FlagType>(m_flag, m_position + ms_flagOffset);
+        WriteValue<FlagValueType>(m_flag, m_position + ms_flagOffset);
     if (flags & ms_rwHight)
         WriteValue<HightValueType>(m_hight, m_position + ms_hightOffset);
     if (flags & ms_rwParentPosition)
@@ -311,15 +226,21 @@ inline void Node<TData>::Write(std::uint8_t flags)
     if (flags & ms_rwRightPosition)
         WriteValue<PositionType>(m_rightPosition, m_position + 
             ms_rightPositionOffset);
-    if (flag & ms_rwLeftPosition)
+    if (flags & ms_rwLeftPosition)
         WriteValue<PositionType>(m_leftPosition, m_position + 
             ms_leftPositionOffset);
-    if (flag & ms_rwData)
+    if (flags & ms_rwData)
         WriteValue<DataType>(m_data, m_position + ms_dataOffset);
 }
 
 template<typename TData>
-inline Node<TData> & Node<TData>::Emplace(TData & data)
+Node<TData> Node<TData>::Instance(std::streampos position) const
+{
+    return Node<TData>{m_filebuffer, position};
+}
+
+template<typename TData>
+Node<TData> & Node<TData>::Emplace(const TData & data)
 {
     if (!m_filebuffer || !m_filebuffer->is_open()) return *this;
     m_flag = 0;
@@ -335,7 +256,7 @@ inline Node<TData> & Node<TData>::Emplace(TData & data)
 }
 
 template<typename TData>
-inline Node<TData> & Node<TData>::Displace()
+Node<TData> & Node<TData>::Displace()
 {
     if (!m_filebuffer || !m_filebuffer->is_open()) return *this;
     m_flag |= 0x01;
@@ -344,16 +265,30 @@ inline Node<TData> & Node<TData>::Displace()
 }
 
 template<typename TData>
-inline typename Node<TData>::PointerInterfaceType & 
+typename Node<TData>::PositionType Node<TData>::Position() const
+{
+    return m_position;
+}
+
+template<typename TData>
+typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Parent()
 {
     if (!m_parent) 
-        return *(m_Parent = new PointerType(*this, PointerType::Way::parent));
+        m_parent = new PointerType(this, PointerType::Way::parent);
     return *m_parent;
 }
 
 template<typename TData>
-inline void Node<TData>::Parent(const PositionType & new_position)
+const typename Node<TData>::PointerInterfaceType & 
+Node<TData>::Parent() const
+{
+    static PointerType def{};
+    return m_parent ? *m_parent : def;
+}
+
+template<typename TData>
+void Node<TData>::Parent(const PositionType & new_position)
 {
     if (m_parentPosition == new_position) return;
     m_parentPosition = new_position;
@@ -361,16 +296,24 @@ inline void Node<TData>::Parent(const PositionType & new_position)
 }
 
 template<typename TData>
-inline typename Node<TData>::PointerInterfaceType & 
+typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Right()
 {
     if (!m_right) 
-        return *(m_right = new PointerType(*this, PointerType::Way::right));
+        m_right = new PointerType(this, PointerType::Way::right);
     return *m_right;
 }
 
 template<typename TData>
-inline void Node<TData>::Right(const PositionType & new_position)
+const typename Node<TData>::PointerInterfaceType & 
+Node<TData>::Right() const
+{
+    static PointerType def{};
+    return m_right ? *m_right : def;
+}
+
+template<typename TData>
+void Node<TData>::Right(const PositionType & new_position)
 {
     if (m_rightPosition == new_position) return;
     m_rightPosition = new_position;
@@ -378,16 +321,24 @@ inline void Node<TData>::Right(const PositionType & new_position)
 }
 
 template<typename TData>
-inline typename Node<TData>::PointerInterfaceType & 
+typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Left()
 {
     if (!m_left) 
-        return *(m_left = new PointerType(*this, PointerType::Way::left));
+        m_left = new PointerType(this, PointerType::Way::left);
     return *m_left;
 }
 
 template<typename TData>
-inline void Node<TData>::Left(const PositionType & new_position)
+const typename Node<TData>::PointerInterfaceType & 
+Node<TData>::Left() const
+{
+    static PointerType def{};
+    return m_left ? *m_left : def;
+}
+
+template<typename TData>
+void Node<TData>::Left(const PositionType & new_position)
 {
     if (m_leftPosition == new_position) return;
     m_leftPosition = new_position;
@@ -395,13 +346,19 @@ inline void Node<TData>::Left(const PositionType & new_position)
 }
 
 template<typename TData>
-inline int Node<TData>::Hight()
+int Node<TData>::Hight()
 {
     return m_hight;
 }
 
 template<typename TData>
-inline int Node<TData>::Hight(int & set)
+int Node<TData>::Hight() const
+{
+    return m_hight;
+}
+
+template<typename TData>
+int Node<TData>::Hight(int & set)
 {
     if (m_hight == set) return m_hight; 
     m_hight = set;
@@ -409,43 +366,72 @@ inline int Node<TData>::Hight(int & set)
 }
 
 template<typename TData>
-inline int Node<TData>::Balance()
+int Node<TData>::Balance()
 {
-    return Right()->Hight() - Left()->Left();
+    return Right()->Hight() - Left()->Hight();
 }
 
 template<typename TData>
-inline TData Node<TData>::Value()
+int Node<TData>::Balance() const
+{
+    return Right()->Hight() - Left()->Hight();
+}
+
+template<typename TData>
+void Node<TData>::Swap(NodeInterfaceType & other)
+{
+    auto node = dynamic_cast<Node<TData> *>(&other);
+    if (!node) return;
+    Node<TData> cpy{*node};
+    *this = std::move(*node);
+    *node = std::move(cpy);
+}
+
+template<typename TData>
+bool Node<TData>::IsDeleted()
+{
+    return m_flag & 0x01;
+}
+
+template<typename TData>
+void Node<TData>::Synchronize()
+{
+    Write();
+}
+
+template<typename TData>
+TData & Node<TData>::operator*()
 {
     return m_data;
 }
 
 template<typename TData>
-inline void Node<TData>::Swap(Node<TData> & node)
+const TData & Node<TData>::operator*() const
 {
-    Node<TData> cpy{node};
-    *this = std::move(node);
-    node = std::move(cpy);
+    return m_data;
 }
 
 template<typename TData>
-inline bool Node<TData>::operator==(Node<TData> other) const
+bool Node<TData>::operator==(const NodeInterfaceType & other) const
 {
-    return m_filebuffer == other.m_filebuffer &&
-        m_position == other.m_position;
+    auto node = dynamic_cast<const Node<TData> *>(&other);
+    return node && m_filebuffer == node->m_filebuffer &&
+        m_position == node->m_position;
 }
 
 template<typename TData>
-inline bool Node<TData>::operator!=(Node<TData> other) const
+bool Node<TData>::operator!=(const NodeInterfaceType & other) const
 {
-    return m_filebuffer != other.m_filebuffer ||
-        m_position != other.m_position;
+    auto node = dynamic_cast<const Node<TData> *>(&other);
+    return !node || m_filebuffer != node->m_filebuffer ||
+        m_position != node->m_position;
 }
 
 template<typename TData>
-inline Node<TData>::operator bool()
+Node<TData>::operator bool() const
 {
-    return m_filebuffer && m_position != -1;
+    return m_filebuffer && m_position != -1 &&
+        m_filebuffer->is_open();
 }
 
 } //!avl
