@@ -10,7 +10,7 @@ Tree::Tree() :
     m_position(-1)
 {}
 
-Tree::Tree(const std::uint64_t & pos) :
+Tree::Tree(const std::int64_t & pos) :
     m_position(pos)
 {}
 
@@ -37,18 +37,18 @@ Tree & Tree::operator=(Tree && mov)
     return *this;
 }
 
-Tree & Tree::operator=(const std::uint64_t & pos)
+Tree & Tree::operator=(const std::int64_t & pos)
 {
     m_position = pos;
     return *this;
 }
 
-std::uint64_t & Tree::operator*()
+std::int64_t & Tree::operator*()
 {
     return m_position;
 }
 
-const std::uint64_t & Tree::operator*() const
+const std::int64_t & Tree::operator*() const
 {
     return m_position;
 }

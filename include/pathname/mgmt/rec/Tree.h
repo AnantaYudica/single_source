@@ -13,10 +13,10 @@ namespace rec
 class Tree
 {
 private:
-    std::uint64_t m_position;
+    std::int64_t m_position;
 public:
     Tree();
-    Tree(const std::uint64_t & pos);
+    Tree(const std::int64_t & pos);
 public:
     Tree(const Tree & cpy);
     Tree(Tree && mov);
@@ -24,10 +24,10 @@ public:
     Tree & operator=(const Tree & cpy);
     Tree & operator=(Tree && mov);
 public:
-    Tree & operator=(const std::uint64_t & pos);
+    Tree & operator=(const std::int64_t & pos);
 public:
-    std::uint64_t & operator*();
-    const std::uint64_t & operator*() const;
+    std::int64_t & operator*();
+    const std::int64_t & operator*() const;
 };
 
 } //rec
