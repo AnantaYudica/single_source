@@ -240,6 +240,19 @@ Node<TData> Node<TData>::Instance(std::streampos position) const
 }
 
 template<typename TData>
+typename Node<TData>::NodeInterfacePointerType 
+Node<TData>::MakeCopy() const
+{
+    return {new Node<TData>(*this)};
+}
+
+template<typename TData>
+typename Node<TData>::NodeInterfacePointerType Node<TData>::MakeMove()
+{
+    return {new Node<TData>(std::move(*this))};
+}
+
+template<typename TData>
 Node<TData> & Node<TData>::Emplace(const TData & data)
 {
     if (!m_filebuffer || !m_filebuffer->is_open()) return *this;

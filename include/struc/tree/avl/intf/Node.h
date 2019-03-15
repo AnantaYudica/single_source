@@ -4,6 +4,8 @@
 #include "Node.decl.h"
 #include "Pointer.h"
 
+#include <memory>
+
 namespace struc
 {
 namespace tree
@@ -18,6 +20,7 @@ class Node
 {
 public:
     typedef TData DataType;
+    typedef std::shared_ptr<DataType> NodePointerType;
     typedef Pointer<TData> PointerType;
 protected:
     Node() = default;
@@ -29,6 +32,9 @@ public:
 public:
     virtual Node<TData> & operator=(const Node<TData> &) = 0;
     virtual Node<TData> & operator=(Node<TData> &&) = 0;
+public:
+    virtual NodePointerType MakeCopy() const = 0;
+    virtual NodePointerType MakeMove() = 0;
 public:
     virtual Node<TData> & Emplace(const TData & data) = 0;
 public:

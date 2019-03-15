@@ -22,6 +22,8 @@ class Node :
 {
 public:
     typedef struc::tree::avl::intf::Node<TData> NodeInterfaceType;
+    typedef typename NodeInterfaceType::NodePointerType 
+        NodeInterfacePointerType;
     typedef struc::tree::avl::intf::Pointer<TData> PointerInterfaceType;
     typedef Pointer<TData> PointerType;
 public:
@@ -90,6 +92,9 @@ private:
     void Write(std::uint8_t flags = 0xFF);
 public:
     Node<TData> Instance(std::streampos position = -1) const;
+private:
+    NodeInterfacePointerType MakeCopy() const;
+    NodeInterfacePointerType MakeMove();
 public:
     Node<TData> & Emplace(const TData & data);
 public:
