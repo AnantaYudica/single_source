@@ -5,6 +5,9 @@
 #include "struc/tree/avl/intf/Pointer.h"
 
 #include <cstdint>
+#include <stack>
+#include <algorithm>
+#include <memory>
 
 namespace struc
 {
@@ -14,34 +17,37 @@ namespace tree
 class AVL
 {
 public:
+    template<typename TData>
+    using NodePointerType = std::shared_ptr<avl::intf::Node<TData>>;
+public:
     AVL() = default;
 private:
     template<typename TData>
-    avl::intf::Node<TData> RotateRight(avl::intf::Node<TData> root);
+    NodePointerType<TData> RotateRight(NodePointerType<TData> root);
     template<typename TData>
-    avl::intf::Node<TData> RotateLeft(avl::intf::Node<TData> root);
+    NodePointerType<TData> RotateLeft(NodePointerType<TData> root);
 private:
     template<typename TData>
-    avl::intf::Node<TData> Rebalance(avl::intf::Node<TData> root);
+    NodePointerType<TData> Rebalance(NodePointerType<TData> root);
 public:
     template<typename TData, typename TCompareFunc>
-    avl::intf::Node<TData> Find(avl::intf::Node<TData> root, 
+    NodePointerType<TData> Find(NodePointerType<TData> root, 
         const TData & data, TCompareFunc compare_func);
     template<typename TData, typename TCompareFunc>
-    avl::intf::Node<TData> Insert(avl::intf::Node<TData> root, 
+    NodePointerType<TData> Insert(NodePointerType<TData> root, 
         TData & data, TCompareFunc compare_func);
 private:
     template<typename TData>
-    avl::intf::Node<TData> Erase(avl::intf::Node<TData> root);
+    NodePointerType<TData> Erase(NodePointerType<TData> root);
     template<typename TData>
-    avl::intf::Node<TData> EraseMaximum(avl::intf::Node<TData> root, 
-        avl::intf::Node<TData> swap);
+    NodePointerType<TData> EraseMaximum(NodePointerType<TData> root, 
+        NodePointerType<TData> swap);
     template<typename TData>
-    avl::intf::Node<TData> EraseMinimum(avl::intf::Node<TData> root, 
-        avl::intf::Node<TData> swap);
+    NodePointerType<TData> EraseMinimum( NodePointerType<TData> root, 
+         NodePointerType<TData> swap);
 public:
     template<typename TData, typename TCompareFunc>
-    avl::intf::Node<TData> Erase(avl::intf::Node<TData> root, 
+    NodePointerType<TData> Erase(NodePointerType<TData> root, 
         const TData & data, TCompareFunc compare_func);
 };
 
