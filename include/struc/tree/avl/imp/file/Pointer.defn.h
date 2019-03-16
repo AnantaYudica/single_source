@@ -1,16 +1,18 @@
-#ifndef FILE_FORMAT_TREE_AVL_POINTER_DEFN_H_
-#define FILE_FORMAT_TREE_AVL_POINTER_DEFN_H_
+#ifndef STRUC_TREE_AVL_IMP_FILE_POINTER_DEFN_H_
+#define STRUC_TREE_AVL_IMP_FILE_POINTER_DEFN_H_
 
 #include "Pointer.decl.h"
 #include "Node.decl.h"
 
-namespace file
-{
-namespace format
+namespace struc
 {
 namespace tree
 {
 namespace avl
+{
+namespace imp
+{
+namespace file
 {
 
 template<typename TData>
@@ -80,13 +82,14 @@ public:
     bool operator!=(const NodeInterfaceType & other) const;
 };
 
+} //file
+
+} //!imp
 
 } //!avl
 
 } //!tree
 
-} //!format
+} //!struc
 
-} //!file
-
-#endif //!FILE_FORMAT_TREE_AVL_POINTER_DEFN_H_
+#endif //!STRUC_TREE_AVL_IMP_FILE_POINTER_DEFN_H_

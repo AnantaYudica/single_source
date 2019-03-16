@@ -1,26 +1,30 @@
-#ifndef FILE_FORMAT_TREE_AVL_POINTER_DECL_H_
-#define FILE_FORMAT_TREE_AVL_POINTER_DECL_H_
+#ifndef STRUC_TREE_AVL_IMP_FILE_POINTER_DECL_H_
+#define STRUC_TREE_AVL_IMP_FILE_POINTER_DECL_H_
 
-#include "struc/tree/avl/intf/Pointer.h"
+#include "../../intf/Pointer.h"
 
-namespace file
-{
-namespace format
+namespace struc
 {
 namespace tree
 {
 namespace avl
 {
+namespace imp
+{
+namespace file
+{
 
 template<typename TData>
 class Pointer;
+
+} //file
+
+} //!imp
 
 } //!avl
 
 } //!tree
 
-} //!format
+} //!struc
 
-} //!file
-
-#endif //!FILE_FORMAT_TREE_AVL_POINTER_DECL_H_
+#endif //!STRUC_TREE_AVL_IMP_FILE_POINTER_DECL_H_

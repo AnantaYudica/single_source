@@ -1,18 +1,20 @@
-#ifndef FILE_FORMAT_TREE_AVL_POINTER_H_
-#define FILE_FORMAT_TREE_AVL_POINTER_H_
+#ifndef STRUC_TREE_AVL_IMP_FILE_POINTER_H_
+#define STRUC_TREE_AVL_IMP_FILE_POINTER_H_
 
 #include "Pointer.defn.h"
 #include "Node.defn.h"
 
 #include <fstream>
 
-namespace file
-{
-namespace format
+namespace struc
 {
 namespace tree
 {
 namespace avl
+{
+namespace imp
+{
+namespace file
 {
 
 template<typename TData>
@@ -252,12 +254,14 @@ bool Pointer<TData>::operator!=(const NodeInterfaceType & other) const
     return IsNull() || !m_next || *m_next != other;
 }
 
+} //file
+
+} //!imp
+
 } //!avl
 
 } //!tree
 
-} //!format
+} //!struc
 
-} //!file
-
-#endif //!FILE_FORMAT_TREE_AVL_POINTER_H_
+#endif //!STRUC_TREE_AVL_IMP_FILE_POINTER_H_

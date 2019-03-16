@@ -1,5 +1,5 @@
-#ifndef FILE_FORMAT_TREE_AVL_NODE_H_
-#define FILE_FORMAT_TREE_AVL_NODE_H_
+#ifndef STRUC_TREE_AVL_IMP_FILE_NODE_H_
+#define STRUC_TREE_AVL_IMP_FILE_NODE_H_
 
 #include "Node.defn.h"
 #include "Pointer.defn.h"
@@ -7,13 +7,15 @@
 #include <utility>
 #include <cstring>
 
-namespace file
-{
-namespace format
+namespace struc
 {
 namespace tree
 {
 namespace avl
+{
+namespace imp
+{
+namespace file
 {
 
 template<typename TData>
@@ -447,12 +449,14 @@ Node<TData>::operator bool() const
         m_filebuffer->is_open();
 }
 
+} //file
+
+} //!imp
+
 } //!avl
 
 } //!tree
 
-} //!format
+} //!struc
 
-} //!file
-
-#endif //!FILE_FORMAT_TREE_AVL_NODE_H_
+#endif //!STRUC_TREE_AVL_IMP_FILE_NODE_H_
