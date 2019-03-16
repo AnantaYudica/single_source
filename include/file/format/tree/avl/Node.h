@@ -243,13 +243,13 @@ template<typename TData>
 typename Node<TData>::NodeInterfacePointerType 
 Node<TData>::MakeCopy() const
 {
-    return {new Node<TData>(*this)};
+    return NodeInterfacePointerType(new Node<TData>(*this));
 }
 
 template<typename TData>
 typename Node<TData>::NodeInterfacePointerType Node<TData>::MakeMove()
 {
-    return {new Node<TData>(std::move(*this))};
+    return NodeInterfacePointerType(new Node<TData>(std::move(*this)));
 }
 
 template<typename TData>
