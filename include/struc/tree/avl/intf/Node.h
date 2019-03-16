@@ -20,7 +20,7 @@ class Node
 {
 public:
     typedef TData DataType;
-    typedef std::shared_ptr<DataType> NodePointerType;
+    typedef std::shared_ptr<Node<DataType>> NodePointerType;
     typedef Pointer<TData> PointerType;
 protected:
     Node() = default;
