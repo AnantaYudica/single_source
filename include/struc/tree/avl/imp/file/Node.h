@@ -20,7 +20,7 @@ namespace file
 
 template<typename TData>
 Node<TData>::Node() :
-    m_filebuffer(nullptr),
+    m_file(nullptr),
     m_position(-1),
     m_flag(0),
     m_hight(0),
@@ -33,8 +33,8 @@ Node<TData>::Node() :
 {}
 
 template<typename TData>
-Node<TData>::Node(std::filebuf * filebuffer) :
-    m_filebuffer(filebuffer),
+Node<TData>::Node(FileInterfacePointerType file) :
+    m_file(file),
     m_position(-1),
     m_flag(0),
     m_hight(0),
@@ -47,17 +47,17 @@ Node<TData>::Node(std::filebuf * filebuffer) :
 {}
 
 template<typename TData>
-Node<TData>::Node(std::filebuf * filebuffer, std::streampos position) :
-    m_filebuffer(filebuffer),
-    m_position(position),
-    m_flag(0),
-    m_hight(0),
-    m_parentPosition(-1),
-    m_rightPosition(-1),
-    m_leftPosition(-1),
-    m_parent(nullptr),
-    m_right(nullptr),
-    m_left(nullptr)
+Node<TData>::Node(FileInterfacePointerType file, FilePositionType position) :
+        m_file(file),
+        m_position(position),
+        m_flag(0),
+        m_hight(0),
+        m_parentPosition(-1),
+        m_rightPosition(-1),
+        m_leftPosition(-1),
+        m_parent(nullptr),
+        m_right(nullptr),
+        m_left(nullptr)
 {
     if (position != -1) Read();
     m_parent = new PointerType(this, PointerType::Way::parent);
@@ -75,7 +75,7 @@ Node<TData>::~Node()
 
 template<typename TData>
 Node<TData>::Node(const Node<TData> & cpy) :
-    m_filebuffer(cpy.m_filebuffer),
+    m_file(cpy.m_file),
     m_position(cpy.m_position),
     m_flag(cpy.m_flag),
     m_hight(cpy.m_hight),
@@ -93,7 +93,7 @@ Node<TData>::Node(const Node<TData> & cpy) :
 
 template<typename TData>
 Node<TData>::Node(Node<TData> && mov) :
-    m_filebuffer(mov.m_filebuffer),
+    m_file(move(mov.m_file)),
     m_position(mov.m_position),
     m_flag(mov.m_flag),
     m_hight(mov.m_hight),
@@ -110,7 +110,7 @@ Node<TData>::Node(Node<TData> && mov) :
 template<typename TData>
 Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
 {
-    m_filebuffer = cpy.m_filebuffer;
+    m_file = cpy.m_file;
     m_position = cpy.m_position;
     m_flag = cpy.m_flag;
     m_hight = cpy.m_hight;
@@ -126,7 +126,7 @@ Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
 template<typename TData>
 Node<TData> & Node<TData>::operator=(Node<TData> && mov)
 {
-    m_filebuffer = mov.m_filebuffer;
+    m_file = move(mov.m_file);
     m_position = mov.m_position;
     m_flag = mov.m_flag;
     m_hight = mov.m_hight;
@@ -160,7 +160,7 @@ Node<TData> & Node<TData>::operator=(NodeInterfaceType && mov)
 template<typename TData>
 void Node<TData>::Default()
 {
-    m_filebuffer = nullptr;
+    m_file = nullptr;
     m_position = -1;
     m_flag = 0;
     m_hight = 0;
@@ -174,12 +174,12 @@ void Node<TData>::Default()
 
 template<typename TData>
 template<typename TValue>
-TValue Node<TData>::ReadValue(std::streampos position)
+TValue Node<TData>::ReadValue(FilePositionType position)
 {
     char buff[sizeof(TValue)];
     TValue value;
-    m_filebuffer->pubseekpos(position);
-    m_filebuffer->sgetn(buff, sizeof(buff));
+    m_file->SeekPosition(position);
+    m_file->Get(buff, sizeof(buff));
     value = *reinterpret_cast<TValue *>(buff);
     return value;
 }
@@ -187,12 +187,12 @@ TValue Node<TData>::ReadValue(std::streampos position)
 template<typename TData>
 template<typename TValue>
 void Node<TData>::WriteValue(const TValue & val, 
-    std::streampos position)
+    FilePositionType position)
 {
     char buff[sizeof(TValue)];
     memcpy(buff, (const char *)&val, sizeof(TValue));
-    m_filebuffer->pubseekpos(position);
-    m_filebuffer->sputn(buff, sizeof(buff));
+    m_file->SeekPosition(position);
+    m_file->Put(buff, sizeof(buff));
 }
 
 template<typename TData>
@@ -236,9 +236,9 @@ void Node<TData>::Write(std::uint8_t flags)
 }
 
 template<typename TData>
-Node<TData> Node<TData>::Instance(std::streampos position) const
+Node<TData> Node<TData>::Instance(FilePositionType position) const
 {
-    return Node<TData>{m_filebuffer, position};
+    return Node<TData>{m_file, position};
 }
 
 template<typename TData>
@@ -257,7 +257,7 @@ typename Node<TData>::NodeInterfacePointerType Node<TData>::MakeMove()
 template<typename TData>
 Node<TData> & Node<TData>::Emplace(const TData & data)
 {
-    if (!m_filebuffer || !m_filebuffer->is_open()) return *this;
+    if (!m_file || !m_file->IsOpen()) return *this;
     m_flag = 0;
     m_hight = 0;
     m_parentPosition = -1;
@@ -265,7 +265,7 @@ Node<TData> & Node<TData>::Emplace(const TData & data)
     m_leftPosition = -1;
     m_data = data;
     if (m_position == -1)
-        m_position = m_filebuffer->pubseekoff(0, std::ios_base::end);
+        m_position = m_file->SeekOffset(0, ::intf::file::Way::end);
     Write();
     return *this;
 }
@@ -273,7 +273,7 @@ Node<TData> & Node<TData>::Emplace(const TData & data)
 template<typename TData>
 Node<TData> & Node<TData>::Displace()
 {
-    if (!m_filebuffer || !m_filebuffer->is_open()) return *this;
+    if (!m_file || !m_file->IsOpen()) return *this;
     m_flag |= 0x01;
     Write(0x01);
     return *this;
@@ -430,7 +430,7 @@ template<typename TData>
 bool Node<TData>::operator==(const NodeInterfaceType & other) const
 {
     auto node = dynamic_cast<const Node<TData> *>(&other);
-    return node && m_filebuffer == node->m_filebuffer &&
+    return node && m_file == node->m_file &&
         m_position == node->m_position;
 }
 
@@ -438,15 +438,15 @@ template<typename TData>
 bool Node<TData>::operator!=(const NodeInterfaceType & other) const
 {
     auto node = dynamic_cast<const Node<TData> *>(&other);
-    return !node || m_filebuffer != node->m_filebuffer ||
+    return !node || m_file != node->m_file ||
         m_position != node->m_position;
 }
 
 template<typename TData>
 Node<TData>::operator bool() const
 {
-    return m_filebuffer && m_position != -1 &&
-        m_filebuffer->is_open();
+    return m_file && m_position != -1 &&
+        m_file->IsOpen();
 }
 
 } //file

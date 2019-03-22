@@ -3,8 +3,8 @@
 
 #include "Node.decl.h"
 #include "Pointer.decl.h"
+#include "../../../../../intf/File.h"
 
-#include <fstream>
 #include <cstdint>
 
 namespace struc
@@ -23,17 +23,24 @@ class Node :
     public struc::tree::avl::intf::Node<TData>
 {
 public:
+    typedef ::intf::File FileInterfaceType;
+    typedef typename FileInterfaceType::PointerType 
+        FileInterfacePointerType;
+public:
+    typedef typename FileInterfaceType::PositionType FilePositionType;
+    typedef typename FileInterfaceType::OffsetType FileOffsetType;
+    typedef typename FileInterfaceType::SizeType FileSizeType;
+public:
     typedef struc::tree::avl::intf::Node<TData> NodeInterfaceType;
     typedef typename NodeInterfaceType::NodePointerType 
         NodeInterfacePointerType;
     typedef struc::tree::avl::intf::Pointer<TData> PointerInterfaceType;
-    typedef Pointer<TData> PointerType;
 public:
     typedef TData DataType;
 public:
     typedef std::uint8_t FlagValueType;
     typedef std::uint32_t HightValueType;
-    typedef std::uint64_t PositionType;
+    typedef FilePositionType PositionType;
 private:
     typedef std::uint8_t FlagReadWrite;
 private:
@@ -57,21 +64,21 @@ private:
     constexpr static FlagReadWrite ms_rwLeftPosition = 0x10;
     constexpr static FlagReadWrite ms_rwData = 0x20;
 private:
-    std::streampos m_position;
     FlagValueType m_flag;
     HightValueType m_hight;
     PositionType m_parentPosition;
     PositionType m_rightPosition;
     PositionType m_leftPosition;
-    std::filebuf * m_filebuffer;
+    FilePositionType m_position;
+    FileInterfacePointerType m_file;
     PointerType * m_parent;
     PointerType * m_right;
     PointerType * m_left;
     TData m_data;
 public:
     Node();
-    Node(std::filebuf * filebuffer);
-    Node(std::filebuf * filebuffer, std::streampos position);
+    Node(FileInterfacePointerType file);
+    Node(FileInterfacePointerType file, FilePositionType position);
 public:
     ~Node(); 
 public:
@@ -86,14 +93,14 @@ private:
     void Default();
 private:
     template<typename TValue>
-    TValue ReadValue(std::streampos position);
+    TValue ReadValue(FilePositionType position);
     template<typename TValue>
-    void WriteValue(const TValue & val, std::streampos position);
+    void WriteValue(const TValue & val, FilePositionType position);
 private:
     void Read(std::uint8_t flags = 0xFF);
     void Write(std::uint8_t flags = 0xFF);
 public:
-    Node<TData> Instance(std::streampos position = -1) const;
+    Node<TData> Instance(FilePositionType position = -1) const;
 private:
     NodeInterfacePointerType MakeCopy() const;
     NodeInterfacePointerType MakeMove();
