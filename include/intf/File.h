@@ -6,12 +6,15 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 
 namespace intf
 {
 
 class File
 {
+public:
+    typedef std::shared_ptr<File> PointerType;
 public:
     typedef std::uint64_t PositionType;
     typedef std::int64_t OffsetType;
@@ -47,9 +50,9 @@ public:
     virtual SizeType Put(const char & ch) = 0;
 public:
     virtual SizeType Get(char * buffer, const SizeType & size) = 0;
-    virtual char Get() = 0;
+    virtual int Get() = 0;
 public:
-    virtual char Current() = 0;
+    virtual int Current() = 0;
 public:
     virtual bool IsEndOfFile() = 0;
 };
