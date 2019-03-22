@@ -20,8 +20,7 @@ class Node
 {
 public:
     typedef TData DataType;
-    typedef std::shared_ptr<Node<DataType>> NodePointerType;
-    typedef Pointer<TData> PointerType;
+    typedef std::shared_ptr<Node<DataType>> PointerType;
 protected:
     Node() = default;
 public:
@@ -33,21 +32,21 @@ public:
     virtual Node<TData> & operator=(const Node<TData> &) = 0;
     virtual Node<TData> & operator=(Node<TData> &&) = 0;
 public:
-    virtual NodePointerType MakeCopy() const = 0;
-    virtual NodePointerType MakeMove() = 0;
+    virtual PointerType MakeCopy() const = 0;
+    virtual PointerType MakeMove() = 0;
 public:
     virtual Node<TData> & Emplace(const TData & data) = 0;
 public:
     virtual Node<TData> & Displace() = 0;
 public:
-    virtual PointerType & Parent() = 0;
-    virtual const PointerType & Parent() const = 0;
+    virtual Pointer<TData> & Parent() = 0;
+    virtual const Pointer<TData> & Parent() const = 0;
 public:
-    virtual PointerType & Right() = 0;
-    virtual const PointerType & Right() const = 0;
+    virtual Pointer<TData> & Right() = 0;
+    virtual const Pointer<TData> & Right() const = 0;
 public:
-    virtual PointerType & Left() = 0;
-    virtual const PointerType & Left() const = 0;
+    virtual Pointer<TData> & Left() = 0;
+    virtual const Pointer<TData> & Left() const = 0;
 public:
     virtual int Hight() = 0;
     virtual int Hight() const = 0;
