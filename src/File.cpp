@@ -3,7 +3,8 @@
 using namespace std;
 
 File::File(ios_base::openmode mode) :
-    m_openmode{mode}
+    m_openmode(mode),
+    m_pathname_key(-1)
 {}
 
 File::~File()
@@ -19,9 +20,8 @@ bool File::IsOpen()
 
 bool File::Open(const Pathname & pathname)
 {
-    if (!pathname) return false;
-    if (m_filebuf.is_open()) m_filebuf.close();
-    m_filebuf.open(pathname.String(), m_openmode);
+    if (!pathname || m_filebuf.is_open()) return false;
+    return m_filebuf.open(pathname.String(), m_openmode) != NULL;
 }
 
 bool File::Open(const PathnameKeyType & pathname_key)
@@ -30,8 +30,14 @@ bool File::Open(const PathnameKeyType & pathname_key)
     lock_guard<mutex> lock(m_lock);
     auto pathname = pathname::Management::GetInstance().
         Get(pathname_key);
-    return Open(pathname);
+    if (Open(pathname))
+    {
+        m_pathname_key = pathname_key;
+        return true;
+    }
+    return false;
 }
+
 void File::Close()
 {
     lock_guard<mutex> lock(m_lock);

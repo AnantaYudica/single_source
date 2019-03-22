@@ -16,6 +16,7 @@ public:
 protected:
     std::mutex m_lock;
     std::filebuf m_filebuf;
+    PathnameKeyType m_pathname_key;
 private:
     std::ios_base::openmode m_openmode;
 protected:
