@@ -1,8 +1,13 @@
 #ifndef INTF_FILE_H_
 #define INTF_FILE_H_
 
-#include "file/Mode.h"
-#include "file/Way.h"
+#include "../defn/file/Mode.h"
+#include "../defn/file/Offset.h"
+#include "../defn/file/Position.h"
+#include "../defn/file/Size.h"
+#include "../defn/file/Way.h"
+#include "file/Input.h"
+#include "file/Output.h"
 
 #include <cstdint>
 #include <string>
@@ -11,18 +16,23 @@
 namespace intf
 {
 
-class File
+class File :
+    public file::Input,
+    public file::Output
 {
 public:
     typedef std::shared_ptr<File> PointerType;
 public:
-    typedef std::uint64_t PositionType;
-    typedef std::int64_t OffsetType;
-    typedef std::uint64_t SizeType;
+    typedef defn::file::OffsetType OffsetType;
+    typedef defn::file::PositionType PositionType;
+    typedef defn::file::SizeType SizeType;
 public:
-    typedef file::Mode ModeType;
-    typedef file::ModeValueType ModeValueType;
-    typedef file::Way WayType;
+    typedef defn::file::Mode ModeType;
+    typedef defn::file::ModeValueType ModeValueType;
+    typedef defn::file::Way WayType;
+public:
+    static constexpr ModeValueType ms_default_mode =
+        (ModeValueType)ModeType::input | (ModeValueType)ModeType::output;
 public:
     File() = default;
     virtual ~File() = default;
@@ -40,19 +50,25 @@ public:
 public:
     virtual void Close() = 0;
 public:
+    virtual ModeValueType Mode() const = 0;
+public:
     virtual PositionType SeekPosition(const PositionType & pos,
-        const ModeValueType & mode = (ModeType::input | ModeType::output)) = 0; 
+        const ModeValueType & mode = ms_default_mode) = 0; 
     virtual PositionType SeekOffset(const OffsetType & off,
-        const WayType & way, const ModeValueType & mode = (ModeType::input | 
-        ModeType::output)) = 0;
+        const WayType & way, const ModeValueType & mode = ms_default_mode) = 0;
 public:
     virtual SizeType Put(const char * buffer, const SizeType & size) = 0;
     virtual SizeType Put(const char & ch) = 0;
 public:
+    virtual SizeType CurrentPut(const char * buffer, 
+        const SizeType & size) = 0;
+    virtual SizeType CurrentPut(const char & ch) = 0;
+public:
     virtual SizeType Get(char * buffer, const SizeType & size) = 0;
     virtual int Get() = 0;
 public:
-    virtual int Current() = 0;
+    virtual SizeType CurrentGet(char * buffer, const SizeType & size) = 0;
+    virtual int CurrentGet() = 0;
 public:
     virtual bool IsEndOfFile() = 0;
 };
