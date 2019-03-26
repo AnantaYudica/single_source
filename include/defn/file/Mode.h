@@ -1,9 +1,9 @@
-#ifndef INTF_FILE_MODE_H_
-#define INTF_FILE_MODE_H_
+#ifndef DEFN_FILE_MODE_H_
+#define DEFN_FILE_MODE_H_
 
 #include <cstdint>
 
-namespace intf
+namespace defn
 {
 namespace file
 {
@@ -18,13 +18,13 @@ enum class Mode : ModeValueType
 
 } //!file
 
-} //!intf
+} //!defn
 
-inline intf::file::ModeValueType operator|(const intf::file::Mode & a,
-    const intf::file::Mode & b)
+inline defn::file::ModeValueType operator|(const defn::file::Mode & a,
+    const defn::file::Mode & b)
 {
-    return static_cast<intf::file::ModeValueType>(a) |
-        static_cast<intf::file::ModeValueType>(b);
+    return static_cast<defn::file::ModeValueType>(a) |
+        static_cast<defn::file::ModeValueType>(b);
 }
 
-#endif //!INTF_FILE_MODE_H_
+#endif //!DEFN_FILE_MODE_H_

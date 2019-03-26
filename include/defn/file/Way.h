@@ -1,9 +1,9 @@
-#ifndef INTF_FILE_WAY_H_
-#define INTF_FILE_WAY_H_
+#ifndef DEFN_FILE_WAY_H_
+#define DEFN_FILE_WAY_H_
 
 #include <cstdint>
 
-namespace intf
+namespace defn
 {
 namespace file
 {
@@ -19,6 +19,6 @@ enum class Way : WayValueType
 
 } //!file
 
-} //!intf
+} //!defn
 
-#endif //!INTF_FILE_WAY_H_
+#endif //!DEFN_FILE_WAY_H_
