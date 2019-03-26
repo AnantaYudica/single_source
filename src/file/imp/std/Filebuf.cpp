@@ -51,6 +51,12 @@ void Filebuf::Close()
     m_filebuf.close();
 }
 
+typename Filebuf::ModeValueType Filebuf::Mode() const
+{
+    return (m_openMode & ios_base::in ? (ModeValueType)ModeType::input : 0) |
+        (m_openMode & ios_base::out ? (ModeValueType)ModeType::output : 0);
+}
+
 typename Filebuf::PositionType 
 Filebuf::SeekPosition(const PositionType & pos, const ModeValueType & mode)
 {
@@ -108,7 +114,36 @@ int Filebuf::Get()
     return m_filebuf.sbumpc();
 }
 
-int Filebuf::Current()
+typename Filebuf::SizeType Filebuf::CurrentPut(const char * buffer, 
+    const SizeType & size)
+{
+    if (!buffer || size == 0 || !m_filebuf.is_open()) return 0;
+    auto size_ch = m_filebuf.sputn(buffer, size);
+    if (size_ch == EOF) return 0;
+    m_filebuf.pubseekoff(-size_ch, ios_base::cur, ios_base::out);
+    return size_ch;
+}
+
+typename Filebuf::SizeType Filebuf::CurrentPut(const char & ch)
+{
+    if (!m_filebuf.is_open()) return 0;
+    auto size_ch = m_filebuf.sputc(ch);
+    if (size_ch == EOF) return 0;
+    m_filebuf.pubseekoff(-1, ios_base::cur, ios_base::out);
+    return 1;
+}
+
+typename Filebuf::SizeType Filebuf::CurrentGet(char * buffer, 
+    const SizeType & size)
+{
+    if (!buffer || size == 0 || !m_filebuf.is_open()) return 0;
+    auto size_ch = m_filebuf.sgetn(buffer, size);
+    if (size_ch == EOF) return 0;
+    m_filebuf.pubseekoff(-size_ch, ios_base::cur, ios_base::in);
+    return size_ch;
+}
+
+int Filebuf::CurrentGet()
 {
     if (!m_filebuf.is_open()) return EOF;
     return m_filebuf.sgetc();
@@ -116,5 +151,5 @@ int Filebuf::Current()
 
 bool Filebuf::IsEndOfFile()
 {
-    return Current() == EOF;
+    return CurrentGet() == EOF;
 }

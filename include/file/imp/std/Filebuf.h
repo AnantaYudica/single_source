@@ -47,11 +47,13 @@ public:
 public:
     void Close();
 public:
+    ModeValueType Mode() const;
+public:
     PositionType SeekPosition(const PositionType & pos,
-        const ModeValueType & mode = (ModeType::input | ModeType::output)); 
+        const ModeValueType & mode = intf::File::ms_default_mode); 
     PositionType SeekOffset(const OffsetType & off,
-        const WayType & way, const ModeValueType & mode = (ModeType::input | 
-        ModeType::output));
+        const WayType & way, const ModeValueType & mode = 
+            intf::File::ms_default_mode);
 public:
     SizeType Put(const char * buffer, const SizeType & size);
     SizeType Put(const char & ch);
@@ -59,7 +61,11 @@ public:
     SizeType Get(char * buffer, const SizeType & size);
     int Get();
 public:
-    int Current();
+    SizeType CurrentPut(const char * buffer, const SizeType & size);
+    SizeType CurrentPut(const char & ch);
+public:
+    SizeType CurrentGet(char * buffer, const SizeType & size);
+    int CurrentGet();
 public:
     bool IsEndOfFile();
 };
