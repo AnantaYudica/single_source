@@ -1,7 +1,7 @@
 #ifndef DEFN_REC_SIZE_H_
 #define DEFN_REC_SIZE_H_
 
-#include <cstdint>
+#include <cstddef>
 
 namespace defn
 {
