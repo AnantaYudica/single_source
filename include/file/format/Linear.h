@@ -5,6 +5,7 @@
 #include "../../intf/file/Input.h"
 #include "../../intf/file/Output.h"
 #include "../../intf/Record.h"
+#include "../../defn/file/Mode.h"
 
 namespace file
 {
@@ -48,9 +49,9 @@ public:
     FileInterfacePointerType File();
 public:
     PositionType SeekPosition(const PositionType & pos, 
-        const ModeValueType & mode = FileInterfaceType::ms_default_mode);
+        const ModeValueType & mode = defn::file::mode::DefaultValue);
     PositionType SeekOffset(const OffsetType & off, const WayType & way,
-        const ModeValueType & mode = FileInterfaceType::ms_default_mode);
+        const ModeValueType & mode = defn::file::mode::DefaultValue);
 public:
     SizeType Put(const char * buffer, const SizeType & size);
     SizeType Put(const RecordInterfaceType & rec);
