@@ -32,6 +32,8 @@ public:
     virtual Node<TData> & operator=(const Node<TData> &) = 0;
     virtual Node<TData> & operator=(Node<TData> &&) = 0;
 public:
+    virtual Node<TData> & operator=(const TData & data) = 0;
+public:
     virtual PointerType MakeCopy() const = 0;
     virtual PointerType MakeMove() = 0;
 public:
@@ -57,8 +59,7 @@ public:
 public:
     virtual void Swap(Node<TData> & other) = 0;
 public:
-    virtual TData & operator*() = 0;
-    virtual const TData & operator*() const = 0;
+    virtual TData operator*() const = 0;
 public:
     virtual bool operator==(const Node<TData> & other) const = 0;
     virtual bool operator!=(const Node<TData> & other) const = 0;
