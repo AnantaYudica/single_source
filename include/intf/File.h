@@ -31,9 +31,6 @@ public:
     typedef defn::file::ModeValueType ModeValueType;
     typedef defn::file::Way WayType;
 public:
-    static constexpr ModeValueType ms_default_mode =
-        (ModeValueType)ModeType::input | (ModeValueType)ModeType::output;
-public:
     File() = default;
     virtual ~File() = default;
 public:
@@ -53,9 +50,10 @@ public:
     virtual ModeValueType Mode() const = 0;
 public:
     virtual PositionType SeekPosition(const PositionType & pos,
-        const ModeValueType & mode = ms_default_mode) = 0; 
+        const ModeValueType & mode = defn::file::mode::DefaultValue) = 0; 
     virtual PositionType SeekOffset(const OffsetType & off,
-        const WayType & way, const ModeValueType & mode = ms_default_mode) = 0;
+        const WayType & way, const ModeValueType & mode = 
+        defn::file::mode::DefaultValue) = 0;
 public:
     virtual SizeType Put(const char * buffer, const SizeType & size) = 0;
     virtual SizeType Put(const char & ch) = 0;
