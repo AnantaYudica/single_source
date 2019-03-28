@@ -16,6 +16,14 @@ enum class Mode : ModeValueType
     output = 0x02
 };
 
+namespace mode
+{
+
+static constexpr ModeValueType DefaultValue = ((ModeValueType)Mode::input |
+    (ModeValueType)Mode::output); 
+
+} //!mode
+
 } //!file
 
 } //!defn
