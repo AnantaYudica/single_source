@@ -21,11 +21,11 @@ template<typename TData>
 Pointer<TData>::Pointer() :
     m_point(nullptr),
     m_next(nullptr),
-    m_way(Way::undefined)
+    m_way(WayType::undefined)
 {}
 
 template<typename TData>
-Pointer<TData>::Pointer(NodeType * base, Way way) :
+Pointer<TData>::Pointer(NodeType * base, WayType way) :
     m_point(base),
     m_next(nullptr),
     m_way(way)

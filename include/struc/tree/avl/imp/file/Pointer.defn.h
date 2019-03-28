@@ -3,6 +3,7 @@
 
 #include "Pointer.decl.h"
 #include "Node.decl.h"
+#include "../../../defn/ptr/Way.h"
 
 namespace struc
 {
@@ -20,13 +21,7 @@ class Pointer :
     public struc::tree::avl::intf::Pointer<TData>
 {
 public:
-    enum class Way
-    {
-        undefined,
-        parent,
-        right,
-        left
-    };
+    typedef defn::ptr::Way WayType;
 public:
     typedef TData DataType;
     typedef struc::tree::avl::intf::Pointer<DataType> PointerInterfaceType;
@@ -36,10 +31,10 @@ public:
 private:
     NodeType * m_point;
     NodeType * m_next;
-    Way m_way;
+    WayType m_way;
 public:
     Pointer();
-    Pointer(NodeType * base, Way way);
+    Pointer(NodeType * base, WayType way);
 public:
     ~Pointer(); 
 public:
