@@ -4,6 +4,7 @@
 #include "../../../../../../defn/rec/Size.h"
 #include "../../../../../../intf/Record.h"
 #include "../../../../../../intf/File.h"
+#include "../../../intf/Node.h"
 
 #include <utility>
 #include <cstdint>
@@ -23,12 +24,12 @@ namespace node
 
 template<typename TData>
 class Record :
-    public intf::Record
+    public ::intf::Record
 {
 public:
     typedef ::intf::Record RecordInterfaceType;
     typedef std::uint8_t FlagsValueType;
-    typedef std::uint32_t HightValueType;
+    typedef typename intf::Node<TData>::HightValueType HightValueType;
     typedef typename RecordInterfaceType::InputType InputType;
     typedef typename RecordInterfaceType::OutputType OutputType;
     typedef typename RecordInterfaceType::StatusValueType StatusValueType;
@@ -58,20 +59,17 @@ private:
     PositionType m_current;
     TData m_data;
     SyncType m_sync_flags;
-    StatusValueType m_status;
 public:
     static constexpr std::size_t Size();
 private:
     static void Default(Record<TData> & rec);
 private:
-    template<typename TReturn>
-    static TReturn Bad(Record<TData> & rec, TReturn val);
-private:
     template<typename TValue>
-    static SizeType Put(Record<TData> & rec, OutputType & out, 
-        const TValue & val, SyncType & sync_flags, SyncType sync_index_val);
-    static SizeType Put(Record<TData> & rec, OutputType & out, 
-        const ::intf::Record & intf_rec, SyncType & sync_flags, 
+    static SizeType Put(const Record<TData> & rec, OutputType & out, 
+        const TValue & val, const SyncType & sync_flags, 
+        SyncType sync_index_val);
+    static SizeType Put(const Record<TData> & rec, OutputType & out, 
+        const ::intf::Record & intf_rec, const SyncType & sync_flags, 
         SyncType sync_index_val);
 private:
     template<typename TValue>
@@ -114,8 +112,6 @@ public:
 public:
     SizeType Get(InputType & in);
 public:
-    StatusValueType Status() const;
-public:
     bool operator==(const RecordInterfaceType & rec_intf) const;
     bool operator!=(const RecordInterfaceType & rec_intf) const;
 };
@@ -123,13 +119,13 @@ public:
 template<typename TData>
 constexpr std::size_t Record<TData>::Size()
 {
-    return sizeof(FlagValueType) +
+    return sizeof(FlagsValueType) +
         sizeof(HightValueType) +
-        sizeof(FilePositionType) +
-        sizeof(FilePositionType) +
-        sizeof(FilePositionType) +
-        sizeof(FilePositionType) +
-        defn::rec::Size<TData>::Value;
+        sizeof(PositionType) +
+        sizeof(PositionType) +
+        sizeof(PositionType) +
+        sizeof(PositionType) +
+        ::defn::rec::Size<TData>::Value;
 }
 
 template<typename TData>
@@ -147,24 +143,16 @@ void Record<TData>::Default(Record<TData> & rec)
 }
 
 template<typename TData>
-template<typename TReturn>
-TReturn Record<TData>::Bad(Record<TData> & rec, TReturn val)
-{
-    rec.m_status = (StatusValueType)StatusType::bad;
-    return val;
-}
-
-template<typename TData>
 template<typename TValue>
-typename Record<TData>::SizeType Record<TData>::Put(Record<TData> & rec,
-    OutputType & out, const TValue & val, SyncType & sync_flags, 
+typename Record<TData>::SizeType Record<TData>::Put(const Record<TData> & rec,
+    OutputType & out, const TValue & val, const SyncType & sync_flags, 
     SyncType sync_index_val)
 {
     if (sync_flags & sync_index_val)
     {
         if (!out.Put((const char *)&val, sizeof(TValue)))
-            return Bad(rec, 0);
-        sync_flags ^= sync_index_val;
+            return Bad<SizeType>(rec, 0);
+        const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
     else
         out.SeekOffset(sizeof(TValue), WayType::current);
@@ -172,18 +160,18 @@ typename Record<TData>::SizeType Record<TData>::Put(Record<TData> & rec,
 }
 
 template<typename TData>
-typename Record<TData>::SizeType Record<TData>::Put(Record<TData> & rec,
-    OutputType & out, const ::intf::Record & intf_rec, SyncType & sync_flags, 
-    SyncType sync_index_val)
+typename Record<TData>::SizeType Record<TData>::Put(const Record<TData> & rec,
+    OutputType & out, const ::intf::Record & intf_rec, 
+    const SyncType & sync_flags, SyncType sync_index_val)
 {
     if (sync_flags & sync_index_val)
     {
-        if (!intf_rec.Put(out)) return Bad(rec, 0);
-        sync_flags ^= sync_index_val;
+        if (!intf_rec.Put(out)) return Bad<SizeType>(rec, 0);
+        const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
     else
-        out.SeekOffset(defn::rec::Size<TData>::Value, WayType::current);
-    return defn::rec::Size<TData>::Value;
+        out.SeekOffset(::defn::rec::Size<TData>::Value, WayType::current);
+    return ::defn::rec::Size<TData>::Value;
 }
 
 template<typename TData>
@@ -193,7 +181,7 @@ typename Record<TData>::SizeType Record<TData>::Get(Record<TData> & rec,
     SyncType sync_index_val)
 {
     char * buffer = reinterpret_cast<char *>(&val);
-    if (!in.Get(buffer, sizeof(TValue))) return Bad(rec, 0);
+    if (!in.Get(buffer, sizeof(TValue))) return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
     return sizeof(TValue);
@@ -204,14 +192,15 @@ typename Record<TData>::SizeType Record<TData>::Get(Record<TData> & rec,
     InputType & in, ::intf::Record & intf_rec, SyncType & sync_flags, 
     SyncType sync_index_val)
 {
-    if (!intf_rec.Get(in)) return Bad(rec, 0);
+    if (!intf_rec.Get(in)) return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
-    return defn::rec::Size<TData>::Value;
+    return ::defn::rec::Size<TData>::Value;
 }
 
 template<typename TData>
 Record<TData>::Record() :
+    ::intf::Record(),
     m_flags(0),
     m_hight(0),
     m_parent(-1),
@@ -219,12 +208,12 @@ Record<TData>::Record() :
     m_left(-1),
     m_current(-1),
     m_data(),
-    m_sync_flags(0),
-    m_status((StatusValueType)StatusType::initial)
+    m_sync_flags(0)
 {}
 
 template<typename TData>
 Record<TData>::Record(const Record<TData> & cpy) :
+    ::intf::Record(cpy),
     m_flags(cpy.m_flags),
     m_hight(cpy.m_hight),
     m_parent(cpy.m_parent),
@@ -232,12 +221,12 @@ Record<TData>::Record(const Record<TData> & cpy) :
     m_left(cpy.m_left),
     m_current(cpy.m_current),
     m_data(cpy.m_data),
-    m_sync_flags(cpy.m_sync_flags),
-    m_status(cpy.m_status)
+    m_sync_flags(cpy.m_sync_flags)
 {}
 
 template<typename TData>
 Record<TData>::Record(Record<TData> && mov) :
+    ::intf::Record(std::move(mov)),
     m_flags(std::move(mov.m_flags)),
     m_hight(std::move(mov.m_hight)),
     m_parent(std::move(mov.m_parent)),
@@ -245,8 +234,7 @@ Record<TData>::Record(Record<TData> && mov) :
     m_left(std::move(mov.m_left)),
     m_current(std::move(mov.m_current)),
     m_data(std::move(mov.m_data)),
-    m_sync_flags(std::move(mov.m_sync_flags)),
-    m_status(std::move(mov.m_status))
+    m_sync_flags(std::move(mov.m_sync_flags))
 {
     Default(mov);
 }
@@ -254,6 +242,7 @@ Record<TData>::Record(Record<TData> && mov) :
 template<typename TData>
 Record<TData> & Record<TData>::operator=(const Record<TData> & cpy)
 {
+    ::intf::Record::operator=(cpy);
     m_flags = cpy.m_flags;
     m_hight = cpy.m_hight;
     m_parent = cpy.m_parent;
@@ -262,13 +251,13 @@ Record<TData> & Record<TData>::operator=(const Record<TData> & cpy)
     m_current = cpy.m_current;
     m_data = cpy.m_data;
     m_sync_flags = cpy.m_sync_flags;
-    m_status = cpy.m_status;
     return *this;
 }
 
 template<typename TData>
 Record<TData> & Record<TData>::operator=(Record<TData> && mov)
 {
+    ::intf::Record::operator=(std::move(mov));
     m_flags = std::move(mov.m_flags);
     m_hight = std::move(mov.m_hight);
     m_parent = std::move(mov.m_parent);
@@ -277,7 +266,6 @@ Record<TData> & Record<TData>::operator=(Record<TData> && mov)
     m_current = std::move(mov.m_current);
     m_data = std::move(mov.m_data);
     m_sync_flags = std::move(mov.m_sync_flags);
-    m_status = std::move(mov.m_status);
     Default(mov);
     return *this;
 }
@@ -294,7 +282,7 @@ void Record<TData>::Flags(const Record<TData>::FlagsValueType & flags)
     if (flags == m_flags) return;
     m_flags = flags;
     m_sync_flags |= ms_flags_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
@@ -309,7 +297,7 @@ void Record<TData>::Hight(const HightValueType & hight)
     if (hight == m_hight) return;
     m_hight = hight;
     m_sync_flags |= ms_hight_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
@@ -324,7 +312,7 @@ void Record<TData>::Parent(const PositionType & parent)
     if (parent == m_parent) return;
     m_parent = parent;
     m_sync_flags |= ms_parent_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
@@ -336,10 +324,10 @@ const typename Record<TData>::PositionType & Record<TData>::Right() const
 template<typename TData>
 void Record<TData>::Right(const PositionType & right)
 {
-    if (parent == m_parent) return;
-    m_parent = parent;
-    m_sync_flags |= ms_parent_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    if (right == m_right) return;
+    m_right = right;
+    m_sync_flags |= ms_right_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
@@ -354,11 +342,11 @@ void Record<TData>::Left(const PositionType & left)
     if (left == m_left) return;
     m_left = left;
     m_sync_flags |= ms_left_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
-const Record<TData>::PositionType & Record<TData>::Current() const
+const typename Record<TData>::PositionType & Record<TData>::Current() const
 {
     return m_current;
 }
@@ -369,7 +357,7 @@ void Record<TData>::Current(const PositionType & curr)
     if (curr == m_current) return;
     m_current = curr;
     m_sync_flags |= ms_current_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
@@ -384,13 +372,13 @@ void Record<TData>::Data(const TData & data)
     if (data == m_data) return;
     m_data = data;
     m_sync_flags |= ms_data_sync;
-    m_status |= (StatusValueType)StatusType::out_sync;
+    OutOfSynchronization(*this);
 }
 
 template<typename TData>
 typename Record<TData>::SizeType Record<TData>::Put(OutputType & out) const
 {
-    if (!out.IsOpen()) return Bad(*this, 0);
+    if (!out.IsOpen()) return Bad<SizeType>(*this, 0);
     if (!Put(*this, out, m_flags, m_sync_flags, ms_flags_sync))
         return 0;
     if (!Put(*this, out, m_hight, m_sync_flags, ms_hight_sync))
@@ -399,41 +387,32 @@ typename Record<TData>::SizeType Record<TData>::Put(OutputType & out) const
         return 0;
     if (!Put(*this, out, m_right, m_sync_flags, ms_right_sync))
         return 0;
-    if (!Put(*this, (out, m_left, m_sync_flags, ms_left_sync))
+    if (!Put(*this, out, m_left, m_sync_flags, ms_left_sync))
         return 0;
-    if (!Put(*this, (out, m_current, m_sync_flags, ms_current_sync))
+    if (!Put(*this, out, m_current, m_sync_flags, ms_current_sync))
         return 0;
-    if (!Put(*this, put, m_data, m_sync_flags, ms_data_sync))
+    if (!Put(*this, out, m_data, m_sync_flags, ms_data_sync))
         return 0;
-    if (m_status & (StatusValueType)StatusType::out_sync)
-        m_status ^= (StatusValueType)StatusType::out_sync;
-    return Size();
+    return Good<SizeType>(*this, Size());
 }
 
 template<typename TData>
 typename Record<TData>::SizeType Record<TData>::Get(InputType & in)
 {
-    if (!out.IsOpen()) return Bad(*this, 0);
-    if (!Get(*this, out, m_flags, m_sync_flags, ms_flags_sync))
+    if (!in.IsOpen()) return Bad<SizeType>(*this, 0);
+    if (!Get(*this, in, m_flags, m_sync_flags, ms_flags_sync))
         return 0;
-    if (!Get(*this, out, m_hight, m_sync_flags, ms_hight_sync))
+    if (!Get(*this, in, m_hight, m_sync_flags, ms_hight_sync))
         return 0;
-    if (!Get(*this, out, m_parent, m_sync_flags, ms_parent_sync))
+    if (!Get(*this, in, m_parent, m_sync_flags, ms_parent_sync))
         return 0;
-    if (!Get(*this, out, m_right, m_sync_flags, ms_right_sync))
+    if (!Get(*this, in, m_right, m_sync_flags, ms_right_sync))
         return 0;
-    if (!Get*this, (out, m_left, m_sync_flags, ms_left_sync))
+    if (!Get(*this, in, m_left, m_sync_flags, ms_left_sync))
         return 0;
-    if (!Get(*this, put, m_data, m_sync_flags, ms_data_sync))
+    if (!Get(*this, in, m_data, m_sync_flags, ms_data_sync))
         return 0;
-    m_status = (StatusValueType)StatusType::good;
-    return Size();
-}
-
-template<typename TData>
-typename Record<TData>::StatusValueType Record<TData>::Status() const
-{
-    return m_status;
+    return Good<SizeType>(*this, Size());
 }
 
 template<typename TData>
@@ -442,7 +421,6 @@ bool Record<TData>::operator==(const RecordInterfaceType & rec_intf) const
     const Record<TData> * rec = dynamic_cast<const Record<TData> *>(&rec_intf);
     if (!rec) return false;
     return m_sync_flags == rec->m_sync_flags && 
-        m_status == rec->m_status &&
         m_flags == rec->m_flags &&
         m_hight == rec->m_hight &&
         m_left == rec->m_left &&
