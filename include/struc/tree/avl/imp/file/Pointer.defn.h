@@ -3,7 +3,7 @@
 
 #include "Pointer.decl.h"
 #include "Node.decl.h"
-#include "../../../defn/ptr/Way.h"
+#include "../../defn/ptr/Way.h"
 
 namespace struc
 {

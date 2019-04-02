@@ -93,7 +93,7 @@ void Pointer<TData>::Default()
 {
     m_point = nullptr;
     m_next = nullptr;
-    m_way = Way::undefined;
+    m_way = WayType::undefined;
 }
 
 template<typename TData>
@@ -101,13 +101,13 @@ void Pointer<TData>::Set(const PositionType & pos)
 {
     switch(m_way)
     {
-        case Way::parent:
+        case WayType::parent:
             m_point->Parent(pos);
             break;
-        case Way::left:
+        case WayType::left:
             m_point->Left(pos);
             break;
-        case Way::right:
+        case WayType::right:
             m_point->Right(pos);
             break;
     };
@@ -118,11 +118,11 @@ typename Pointer<TData>::PositionType Pointer<TData>::Get()
 {
     switch(m_way)
     {
-        case Way::parent:
+        case WayType::parent:
             return m_point->Parent();
-        case Way::left:
+        case WayType::left:
             return m_point->Left();
-        case Way::right:
+        case WayType::right:
             return m_point->Right();
     }
     return -1;
@@ -148,7 +148,7 @@ void Pointer<TData>::Reset()
 template<typename TData>
 bool Pointer<TData>::IsNull() const
 {
-    return m_point == nullptr || m_way == Way::undefined;
+    return m_point == nullptr || m_way == WayType::undefined;
 }
 
 template<typename TData>
@@ -187,7 +187,7 @@ Pointer<TData> & Pointer<TData>::operator=(const NodeInterfaceType & other)
 template<typename TData>
 Pointer<TData>::operator bool() const
 {
-    return  m_point != nullptr && m_way != Way::undefined;
+    return  m_point != nullptr && m_way != WayType::undefined;
 }
 
 template<typename TData>
