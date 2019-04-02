@@ -2,6 +2,7 @@
 #define FILE_IMP_STD_FILEBUF_H_
 
 #include "../../../intf/File.h"
+#include "../../../defn/file/Mode.h"
 
 #include <string>
 #include <fstream>
@@ -50,10 +51,10 @@ public:
     ModeValueType Mode() const;
 public:
     PositionType SeekPosition(const PositionType & pos,
-        const ModeValueType & mode = intf::File::ms_default_mode); 
+        const ModeValueType & mode = defn::file::mode::DefaultValue); 
     PositionType SeekOffset(const OffsetType & off,
         const WayType & way, const ModeValueType & mode = 
-            intf::File::ms_default_mode);
+            defn::file::mode::DefaultValue);
 public:
     SizeType Put(const char * buffer, const SizeType & size);
     SizeType Put(const char & ch);
