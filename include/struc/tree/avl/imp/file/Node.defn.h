@@ -78,8 +78,8 @@ private:
 public:
     Node<TData> Instance(PositionType position = -1) const;
 private:
-    InterfacePointerType MakeCopy() const;
-    InterfacePointerType MakeMove();
+    NodeInterfacePointerType MakeCopy() const;
+    NodeInterfacePointerType MakeMove();
 public:
     Node<TData> & Emplace(const TData & data);
 public:
@@ -100,7 +100,7 @@ public:
     void Left(const PositionType & new_position);
 public:
     int Hight() const;
-    int Hight(HightValueType & set);
+    int Hight(const HightValueType & set);
 public:
     int Balance();
     int Balance() const;
