@@ -19,6 +19,7 @@ template<typename TData>
 class Node
 {
 public:
+    typedef std::uint32_t HightValueType;
     typedef TData DataType;
     typedef std::shared_ptr<Node<DataType>> PointerType;
 protected:
@@ -50,9 +51,8 @@ public:
     virtual Pointer<TData> & Left() = 0;
     virtual const Pointer<TData> & Left() const = 0;
 public:
-    virtual int Hight() = 0;
     virtual int Hight() const = 0;
-    virtual int Hight(int & set) = 0;
+    virtual int Hight(const HightValueType & set) = 0;
 public:
     virtual int Balance() = 0;
     virtual int Balance() const = 0;
