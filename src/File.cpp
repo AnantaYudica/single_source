@@ -28,8 +28,7 @@ bool File::Open(const PathnameKeyType & pathname_key)
 {
     if (pathname_key < 0) return false;
     lock_guard<mutex> lock(m_lock);
-    auto pathname = pathname::Management::GetInstance().
-        Get(pathname_key);
+    auto pathname = mgmt::Pathname::GetInstance().Get(pathname_key);
     if (Open(pathname))
     {
         m_pathname_key = pathname_key;

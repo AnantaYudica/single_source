@@ -1,7 +1,8 @@
 #ifndef FILE_H_
 #define FILE_H_
 
-#include "pathname/Management.h"
+#include "defn/mgmt/pathname/Key.h"
+#include "mgmt/Pathname.h"
 
 #include <fstream>
 #include <mutex>
@@ -12,7 +13,7 @@ public:
     typedef std::streamoff OffsetType;
     typedef std::streampos PosisitionType;
     typedef std::streamsize SizeType;
-    typedef pathname::Management::KeyValueType PathnameKeyType;
+    typedef defn::mgmt::pathname::KeyValue PathnameKeyType;
 protected:
     std::mutex m_lock;
     std::filebuf m_filebuf;
