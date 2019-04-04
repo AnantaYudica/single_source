@@ -1,5 +1,5 @@
-#ifndef PATHNAME_MGMT_REC_TREE_H_
-#define PATHNAME_MGMT_REC_TREE_H_
+#ifndef MGMT_PATHNAME_REC_LINEAR_H_
+#define MGMT_PATHNAME_REC_LINEAR_H_
 
 #include "../../../defn/rec/Size.h"
 #include "../../../intf/Record.h"
@@ -9,18 +9,18 @@
 #include <cstddef>
 #include <string>
 
-namespace pathname
-{
 namespace mgmt
+{
+namespace pathname
 {
 namespace rec
 {
 
-class Tree :
+class Linear :
     public ::intf::Record
 {
 public:
-    typedef intf::Record RecordInterfaceType;
+    typedef ::intf::Record RecordInterfaceType;
 public:
     typedef typename RecordInterfaceType::OffsetType OffsetType;
     typedef typename RecordInterfaceType::PositionType PositionType;
@@ -37,30 +37,34 @@ public:
     typedef typename FileInterfaceType::PositionType FilePositionType;
 private:
     typedef std::uint8_t SyncType;
-private:
-    static constexpr SyncType ms_position_sync = 0x01;
+    typedef std::uint8_t FlagsValueType;
 public:
-    static constexpr std::size_t Size();
+    static constexpr std::size_t ms_flags_alloc_size = sizeof(FlagsValueType);
+    static constexpr std::size_t ms_pathname_alloc_size = 256;
+public:
+    static constexpr std::size_t ms_delete_flag = 0x01;
+private:
+    static constexpr SyncType ms_flags_sync = 0x01;
+    static constexpr SyncType ms_pathname_sync = 0x02;
 private:
     SyncType m_sync_flags;
-    FilePositionType m_position;
+    FlagsValueType m_flags;
     std::string m_pathname;
 public:
-    Tree();
-    Tree(const FilePositionType & pos);
-    Tree(const std::string & pathname);
+    Linear();
+    Linear(const std::string & pathname);
 public:
-    Tree(const Tree & cpy);
-    Tree(Tree && mov);
+    Linear(const Linear & cpy);
+    Linear(Linear && mov);
 public:
-    Tree & operator=(const Tree & cpy);
-    Tree & operator=(Tree && mov);
+    Linear & operator=(const Linear & cpy);
+    Linear & operator=(Linear && mov);
 public:
-    FilePositionType Position() const;
-    void Position(const FilePositionType & pos);
+    bool IsDelete() const;
+    void Delete();
 public:
-    std::string Pathname() const;
-    void Pathname(const std::string & pathname);
+    std::string Value() const;
+    void Value(const std::string & pathname);
 public:
     SizeType Put(OutputType & out) const;
 public:
@@ -70,22 +74,19 @@ public:
     bool operator!=(const RecordInterfaceType & rec) const;
 };
 
-constexpr std::size_t Tree::Size()
-{
-    return sizeof(FilePositionType);
-}
-
-} //rec
-
-} //!mgmt
+} //!rec
 
 } //!pathname
 
+} //!mgmt
+
 template<>
-struct defn::rec::Size<pathname::mgmt::rec::Tree>
+struct defn::rec::Size<mgmt::pathname::rec::Linear>
 {
     typedef std::size_t ValueType;
-    static constexpr ValueType Value = pathname::mgmt::rec::Tree::Size();
+    static constexpr ValueType Value = 
+        ::mgmt::pathname::rec::Linear::ms_flags_alloc_size + 
+        ::mgmt::pathname::rec::Linear::ms_pathname_alloc_size;
 };
 
-#endif //!PATHNAME_MGMT_REC_TREE_H_
+#endif //!MGMT_PATHNAME_REC_LINEAR_H_

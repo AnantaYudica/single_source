@@ -1,33 +1,33 @@
-#include "pathname/mgmt/rec/Name.h"
+#include "mgmt/pathname/rec/Linear.h"
 
 #include <utility>
 #include <cstring>
 
 using namespace std;
-using namespace pathname::mgmt::rec;
+using namespace mgmt::pathname::rec;
 
-Name::Name() :
+Linear::Linear() :
     ::intf::Record(),
     m_sync_flags(0),
     m_flags(0),
     m_pathname()
 {}
 
-Name::Name(const std::string & pathname) :
+Linear::Linear(const std::string & pathname) :
     ::intf::Record(),
     m_sync_flags(ms_pathname_sync),
     m_flags(0),
     m_pathname(pathname)
 {}
 
-Name::Name(const Name & cpy) :
+Linear::Linear(const Linear & cpy) :
     ::intf::Record(cpy),
     m_sync_flags(cpy.m_sync_flags),
     m_flags(cpy.m_flags),
     m_pathname(cpy.m_pathname)
 {}
 
-Name::Name(Name && mov) :
+Linear::Linear(Linear && mov) :
     ::intf::Record(move(mov)),
     m_sync_flags(move(mov.m_sync_flags)),
     m_flags(move(mov.m_flags)),
@@ -38,7 +38,7 @@ Name::Name(Name && mov) :
     mov.m_pathname.clear();
 }
 
-Name & Name::operator=(const Name & cpy)
+Linear & Linear::operator=(const Linear & cpy)
 {
     ::intf::Record::operator=(cpy);
     m_sync_flags = cpy.m_sync_flags;
@@ -47,7 +47,7 @@ Name & Name::operator=(const Name & cpy)
     return *this;
 }
 
-Name & Name::operator=(Name && mov)
+Linear & Linear::operator=(Linear && mov)
 {
     ::intf::Record::operator=(move(mov));
     m_sync_flags = move(mov.m_sync_flags);
@@ -59,31 +59,31 @@ Name & Name::operator=(Name && mov)
     return *this;
 }
 
-bool Name::IsDelete() const
+bool Linear::IsDelete() const
 {
     return m_flags & ms_delete_flag;
 }
 
-void Name::Delete()
+void Linear::Delete()
 {
     m_flags |= ms_delete_flag;
     m_sync_flags |= ms_flags_sync;
     OutOfSynchronization(*this);
 }
 
-string Name::Value() const
+string Linear::Value() const
 {
     return m_pathname;
 }
 
-void Name::Value(const string & pathname)
+void Linear::Value(const string & pathname)
 {
     m_pathname = pathname;
     m_sync_flags |= ms_pathname_sync;
     OutOfSynchronization(*this);
 }
 
-typename Name::SizeType Name::Put(OutputType & out) const
+typename Linear::SizeType Linear::Put(OutputType & out) const
 {
     if (m_sync_flags & ms_flags_sync)
     {
@@ -104,10 +104,11 @@ typename Name::SizeType Name::Put(OutputType & out) const
     }
     else
         out.SeekOffset(ms_pathname_alloc_size, WayType::current);
-    return Good<SizeType>(*this, sizeof(FilePositionType));
+    return Good<SizeType>(*this, 
+        sizeof(FilePositionType));
 }
 
-typename Name::SizeType Name::Get(InputType & in)
+typename Linear::SizeType Linear::Get(InputType & in)
 {
     if (m_sync_flags & ms_flags_sync)
     {
@@ -122,25 +123,26 @@ typename Name::SizeType Name::Get(InputType & in)
         char buffer[ms_pathname_alloc_size + 1];
         auto size = in.Get(buffer, sizeof(ms_pathname_alloc_size));
         if (size == 0) return Bad<SizeType>(*this, 0);
-        buffer[ms_pathname_alloc_size] = NULL;
+        buffer[ms_pathname_alloc_size] = '\0';
         m_pathname = buffer;
         m_sync_flags ^= ms_pathname_sync;
         in.SeekOffset(ms_pathname_alloc_size - size, WayType::current);
     }
     else
         in.SeekOffset(ms_pathname_alloc_size, WayType::current);
-    return Good<SizeType>(*this, sizeof(FilePositionType));
+    return Good<SizeType>(*this, 
+        sizeof(FilePositionType));
 }
 
-bool Name::operator==(const RecordInterfaceType & rec) const
+bool Linear::operator==(const RecordInterfaceType & rec) const
 {
-    auto * rec_name = dynamic_cast<const Name *>(&rec);
+    auto * rec_name = dynamic_cast<const Linear *>(&rec);
     if (!rec_name) return false;
     return m_flags == rec_name->m_flags &&
         m_pathname.compare(rec_name->m_pathname) == 0;
 }
 
-bool Name::operator!=(const RecordInterfaceType & rec) const
+bool Linear::operator!=(const RecordInterfaceType & rec) const
 {
     return !(*this == rec);
 }

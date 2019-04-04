@@ -1,5 +1,5 @@
-#ifndef PATHNAME_MGMT_REC_NAME_H_
-#define PATHNAME_MGMT_REC_NAME_H_
+#ifndef MGMT_PATHNAME_REC_TREE_H_
+#define MGMT_PATHNAME_REC_TREE_H_
 
 #include "../../../defn/rec/Size.h"
 #include "../../../intf/Record.h"
@@ -9,14 +9,14 @@
 #include <cstddef>
 #include <string>
 
-namespace pathname
-{
 namespace mgmt
+{
+namespace pathname
 {
 namespace rec
 {
 
-class Name :
+class Tree :
     public ::intf::Record
 {
 public:
@@ -37,36 +37,28 @@ public:
     typedef typename FileInterfaceType::PositionType FilePositionType;
 private:
     typedef std::uint8_t SyncType;
-    typedef std::uint8_t FlagsValueType;
-public:
-    static constexpr std::size_t ms_flags_alloc_size = sizeof(FlagsValueType);
-    static constexpr std::size_t ms_pathname_alloc_size = 256;
-public:
-    static constexpr std::size_t ms_delete_flag = 0x01;
 private:
-    static constexpr SyncType ms_flags_sync = 0x01;
-    static constexpr SyncType ms_pathname_sync = 0x02;
-public:
-    static constexpr std::size_t Size();
+    static constexpr SyncType ms_position_sync = 0x01;
 private:
     SyncType m_sync_flags;
-    FlagsValueType m_flags;
+    FilePositionType m_position;
     std::string m_pathname;
 public:
-    Name();
-    Name(const std::string & pathname);
+    Tree();
+    Tree(const FilePositionType & pos);
+    Tree(const std::string & pathname);
 public:
-    Name(const Name & cpy);
-    Name(Name && mov);
+    Tree(const Tree & cpy);
+    Tree(Tree && mov);
 public:
-    Name & operator=(const Name & cpy);
-    Name & operator=(Name && mov);
+    Tree & operator=(const Tree & cpy);
+    Tree & operator=(Tree && mov);
 public:
-    bool IsDelete() const;
-    void Delete();
+    FilePositionType Position() const;
+    void Position(const FilePositionType & pos);
 public:
-    std::string Value() const;
-    void Value(const std::string & pathname);
+    std::string Pathname() const;
+    void Pathname(const std::string & pathname);
 public:
     SizeType Put(OutputType & out) const;
 public:
@@ -76,22 +68,18 @@ public:
     bool operator!=(const RecordInterfaceType & rec) const;
 };
 
-constexpr std::size_t Name::Size()
-{
-    return ms_flags_alloc_size + ms_pathname_alloc_size;
-}
-
-} //!rec
-
-} //!mgmt
+} //rec
 
 } //!pathname
 
+} //!mgmt
+
 template<>
-struct defn::rec::Size<pathname::mgmt::rec::Name>
+struct defn::rec::Size<mgmt::pathname::rec::Tree>
 {
     typedef std::size_t ValueType;
-    static constexpr ValueType Value = pathname::mgmt::rec::Name::Size();
+    static constexpr ValueType Value = 
+        sizeof(::mgmt::pathname::rec::Tree::FilePositionType);
 };
 
-#endif //!PATHNAME_MGMT_REC_NAME_H_
+#endif //!MGMT_PATHNAME_REC_TREE_H_

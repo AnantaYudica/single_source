@@ -1,9 +1,9 @@
-#include "pathname/mgmt/rec/Tree.h"
+#include "mgmt/pathname/rec/Tree.h"
 
 #include <utility>
 
 using namespace std;
-using namespace pathname::mgmt::rec;
+using namespace mgmt::pathname::rec;
 
 Tree::Tree() :
     ::intf::Record(),
@@ -99,7 +99,8 @@ typename Tree::SizeType Tree::Put(OutputType & out) const
     }
     else
         out.SeekOffset(sizeof(FilePositionType), WayType::current);
-    return Good<SizeType>(*this, sizeof(FilePositionType));
+    return Good<SizeType>(*this, 
+        sizeof(FilePositionType));
 }
 
 typename Tree::SizeType Tree::Get(InputType & in)
@@ -112,7 +113,8 @@ typename Tree::SizeType Tree::Get(InputType & in)
     }
     else
         in.SeekOffset(sizeof(FilePositionType), WayType::current);
-    return Good<SizeType>(*this, sizeof(FilePositionType));
+    return Good<SizeType>(*this, 
+        sizeof(FilePositionType));
 }
 
 
