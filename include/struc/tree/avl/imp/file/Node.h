@@ -9,7 +9,6 @@
 #include "../../../../../defn/rec/Size.h"
 #include "../../../../../defn/rec/Status.h"
 
-
 #include <utility>
 #include <cstring>
 
@@ -38,7 +37,8 @@ template<typename TData>
 Node<TData>::Node(FileInterfacePointerType file) :
     m_record(),
     m_file(file),
-    m_fileFormatLinear(file, ::defn::rec::Size<RecordType>::Value),
+    m_fileFormatLinear(file, static_cast<std::size_t>(::defn::rec::
+        Size<RecordType>::Value)),
     m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
@@ -48,7 +48,8 @@ template<typename TData>
 Node<TData>::Node(FileInterfacePointerType file, PositionType position) :
     m_record(),
     m_file(file),
-    m_fileFormatLinear(file, ::defn::rec::Size<RecordType>::Value),
+    m_fileFormatLinear(file, static_cast<std::size_t>(::defn::rec::
+        Size<RecordType>::Value)),
     m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
@@ -57,9 +58,9 @@ Node<TData>::Node(FileInterfacePointerType file, PositionType position) :
     {
         m_fileFormatLinear.SeekPosition(position);
         m_fileFormatLinear.CurrentGet(m_record);
-        m_parent = new Pointer<TData>(this, Pointer<TData>::Way::parent);
-        m_right = new Pointer<TData>(this, Pointer<TData>::Way::right);
-        m_left = new Pointer<TData>(this, Pointer<TData>::Way::left);
+        m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
+        m_right = new Pointer<TData>(this, Pointer<TData>::WayType::right);
+        m_left = new Pointer<TData>(this, Pointer<TData>::WayType::left);
     }
 }
 
@@ -83,9 +84,9 @@ Node<TData>::Node(const Node<TData> & cpy) :
     m_right(nullptr),
     m_left(nullptr)
 {
-    m_parent = new Pointer<TData>(this, Pointer<TData>::Way::parent);
-    m_right = new Pointer<TData>(this, Pointer<TData>::Way::right);
-    m_left = new Pointer<TData>(this, Pointer<TData>::Way::left);
+    m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
+    m_right = new Pointer<TData>(this, Pointer<TData>::WayType::right);
+    m_left = new Pointer<TData>(this, Pointer<TData>::WayType::left);
 }
 
 template<typename TData>
@@ -106,9 +107,9 @@ Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
     m_record = cpy.m_record;
     m_file = cpy.m_file;
     m_fileFormatLinear = cpy.m_fileFormatLinear;
-    m_parent = new Pointer<TData>(this, Pointer<TData>::Way::parent);
-    m_right = new Pointer<TData>(this, Pointer<TData>::Way::right);
-    m_left = new Pointer<TData>(this, Pointer<TData>::Way::left);
+    m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
+    m_right = new Pointer<TData>(this, Pointer<TData>::WayType::right);
+    m_left = new Pointer<TData>(this, Pointer<TData>::WayType::left);
     return *this;
 }
 
@@ -182,8 +183,8 @@ template<typename TData>
 Node<TData> & Node<TData>::Emplace(const TData & data)
 {
     if (!m_file || !m_file->IsOpen()) return *this;
-    if (!(m_record.Status() & ::defn::rec::Status::initial))
-        RecordType::Default(m_record);
+    if (!m_record.IsInitial())
+        m_record = RecordType();
     m_fileFormatLinear.SeekOffset(0, WayType::end);
     m_record.Data(data);
     m_fileFormatLinear.CurrentPut(m_record);
@@ -194,7 +195,7 @@ template<typename TData>
 Node<TData> & Node<TData>::Displace()
 {
     if (!m_file || !m_file->IsOpen() || m_record.Current() == -1) return *this;
-    m_record.Flags(m_record.Flags() | RecordType::DeleteFlag);
+    m_record.Flags(m_record.Flags() | RecordType::delete_flag);
     m_fileFormatLinear.SeekPosition(m_record.Current());
     m_fileFormatLinear.CurrentPut(m_record);
     return *this;
@@ -211,7 +212,7 @@ typename Node<TData>::PointerInterfaceType &
 Node<TData>::Parent()
 {
     if (!m_parent) 
-        m_parent = new Pointer<TData>(this, Pointer<TData>::Way::parent);
+        m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
     return *m_parent;
 }
 
@@ -219,9 +220,9 @@ template<typename TData>
 const typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Parent() const
 {
-    if (!m_parent) 
-        const_cast<Pointer<TData> *>(m_parent) = new Pointer<TData>(this, 
-            Pointer<TData>::Way::parent);
+    if (!m_parent) *const_cast<Pointer<TData> **>(&m_parent) = 
+        new Pointer<TData>(const_cast<Node<TData> *>(this), 
+        Pointer<TData>::WayType::parent);
     return *m_parent;
 }
 
@@ -236,7 +237,7 @@ typename Node<TData>::PointerInterfaceType &
 Node<TData>::Right()
 {
     if (!m_right) 
-        m_right = new Pointer<TData>(this, Pointer<TData>::Way::right);
+        m_right = new Pointer<TData>(this, Pointer<TData>::WayType::right);
     return *m_right;
 }
 
@@ -244,9 +245,9 @@ template<typename TData>
 const typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Right() const
 {
-    if (!m_right) 
-        const_cast<Pointer<TData> *>(m_right) = new Pointer<TData>(this, 
-            Pointer<TData>::Way::right);
+    if (!m_right) *const_cast<Pointer<TData> **>(&m_right) = 
+        new Pointer<TData>(const_cast<Node<TData> *>(this), 
+        Pointer<TData>::WayType::right);
     return *m_right;
 }
 
@@ -261,7 +262,7 @@ typename Node<TData>::PointerInterfaceType &
 Node<TData>::Left()
 {
     if (!m_left) 
-        m_left = new Pointer<TData>(this, Pointer<TData>::Way::left);
+        m_left = new Pointer<TData>(this, Pointer<TData>::WayType::left);
     return *m_left;
 }
 
@@ -269,9 +270,9 @@ template<typename TData>
 const typename Node<TData>::PointerInterfaceType & 
 Node<TData>::Left() const
 {
-    if (!m_left) 
-        const_cast<Pointer<TData> *>(m_left) = new Pointer<TData>(this, 
-            Pointer<TData>::Way::left);
+    if (!m_left) *const_cast<Pointer<TData> **>(&m_left) = 
+        new Pointer<TData>(const_cast<Node<TData> *>(this), 
+        Pointer<TData>::WayType::left);
     return *m_left;
 }
 
