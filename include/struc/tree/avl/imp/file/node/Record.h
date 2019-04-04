@@ -59,8 +59,6 @@ private:
     PositionType m_current;
     TData m_data;
     SyncType m_sync_flags;
-public:
-    static constexpr std::size_t Size();
 private:
     static void Default(Record<TData> & rec);
 private:
@@ -117,18 +115,6 @@ public:
 };
 
 template<typename TData>
-constexpr std::size_t Record<TData>::Size()
-{
-    return sizeof(FlagsValueType) +
-        sizeof(HightValueType) +
-        sizeof(PositionType) +
-        sizeof(PositionType) +
-        sizeof(PositionType) +
-        sizeof(PositionType) +
-        ::defn::rec::Size<TData>::Value;
-}
-
-template<typename TData>
 void Record<TData>::Default(Record<TData> & rec)
 {
     rec.m_flags = 0;
@@ -139,7 +125,6 @@ void Record<TData>::Default(Record<TData> & rec)
     rec.m_current = -1;
     rec.m_data = TData();
     rec.m_sync_flags = 0;
-    rec.m_status = (StatusValueType)StatusType::initial;
 }
 
 template<typename TData>
@@ -170,8 +155,9 @@ typename Record<TData>::SizeType Record<TData>::Put(const Record<TData> & rec,
         const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
     else
-        out.SeekOffset(::defn::rec::Size<TData>::Value, WayType::current);
-    return ::defn::rec::Size<TData>::Value;
+        out.SeekOffset(static_cast<std::size_t>(::defn::rec::
+            Size<TData>::Value), WayType::current);
+    return static_cast<std::size_t>(::defn::rec::Size<TData>::Value);
 }
 
 template<typename TData>
@@ -195,7 +181,7 @@ typename Record<TData>::SizeType Record<TData>::Get(Record<TData> & rec,
     if (!intf_rec.Get(in)) return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
-    return ::defn::rec::Size<TData>::Value;
+    return static_cast<std::size_t>(::defn::rec::Size<TData>::Value);
 }
 
 template<typename TData>
@@ -393,7 +379,8 @@ typename Record<TData>::SizeType Record<TData>::Put(OutputType & out) const
         return 0;
     if (!Put(*this, out, m_data, m_sync_flags, ms_data_sync))
         return 0;
-    return Good<SizeType>(*this, Size());
+    return Good<SizeType>(*this, static_cast<std::size_t>(::defn::rec::
+        Size<TData>::Value));
 }
 
 template<typename TData>
@@ -412,7 +399,8 @@ typename Record<TData>::SizeType Record<TData>::Get(InputType & in)
         return 0;
     if (!Get(*this, in, m_data, m_sync_flags, ms_data_sync))
         return 0;
-    return Good<SizeType>(*this, Size());
+    return Good<SizeType>(*this, static_cast<std::size_t>(::defn::rec::
+        Size<TData>::Value));
 }
 
 template<typename TData>
@@ -451,9 +439,17 @@ bool Record<TData>::operator!=(const RecordInterfaceType & rec_intf) const
 template<typename TData>
 struct defn::rec::Size<struc::tree::avl::imp::file::node::Record<TData>>
 {
+    typedef struc::tree::avl::imp::file::node::Record<TData>
+        RecordDataType;
     typedef std::size_t ValueType;
-    static constexpr ValueType Value = struc::tree::avl::imp::file::node::
-        Record<TData>::Size();
+    static constexpr ValueType Value = 
+        sizeof(typename RecordDataType::FlagsValueType) +
+        sizeof(typename RecordDataType::HightValueType) +
+        sizeof(typename RecordDataType::PositionType) +
+        sizeof(typename RecordDataType::PositionType) +
+        sizeof(typename RecordDataType::PositionType) +
+        sizeof(typename RecordDataType::PositionType) +
+        ::defn::rec::Size<TData>::Value;
 };
 
 
