@@ -62,11 +62,12 @@ Filebuf::SeekPosition(const PositionType & pos, const ModeValueType & mode)
 {
     const bool is_input_mode = (mode & (ModeValueType)ModeType::input); 
     const bool is_output_mode = (mode & (ModeValueType)ModeType::output); 
-    int seek_mode = (is_input_mode ? ios_base::in : 0);
-    seek_mode |= (is_output_mode ? ios_base::out : 0);
+    ios_base::openmode seek_mode = (is_input_mode ? ios_base::in : 
+        ios_base::openmode());
+    seek_mode |= (is_output_mode ? ios_base::out : ios_base::openmode());
     if (seek_mode == 0)
         return m_filebuf.pubseekpos(pos);
-    return m_filebuf.pubseekoff(pos, seek_mode);
+    return m_filebuf.pubseekpos(pos, seek_mode);
 }
 
 typename Filebuf::PositionType 
@@ -75,13 +76,14 @@ Filebuf::SeekOffset(const OffsetType & off, const WayType & way,
 {
     const bool is_input_mode = (mode & (ModeValueType)ModeType::input); 
     const bool is_output_mode = (mode & (ModeValueType)ModeType::output); 
-    int seek_mode = (is_input_mode ? ios_base::in : 0);
-    seek_mode |= (is_output_mode ? ios_base::out : 0);
-    const int way_mode = (way == WayType::begin ? ios_base::beg :
+    ios_base::openmode seek_mode = (is_input_mode ? ios_base::in : 
+        ios_base::openmode());
+    seek_mode |= (is_output_mode ? ios_base::out :  ios_base::openmode());
+    const ios_base::seekdir way_mode = (way == WayType::begin ? ios_base::beg :
         (way == WayType::current ? ios_base::cur : 
-        (way == WayType::end ? ios_base::end : 0)));
-    if (way_mode == 0) return -1;
-    if (seek_mode == 0)
+        (way == WayType::end ? ios_base::end :  ios_base::seekdir())));
+    if (way_mode ==  ios_base::seekdir()) return -1;
+    if (seek_mode == ios_base::openmode())
         return m_filebuf.pubseekoff(off, way_mode);
     return m_filebuf.pubseekoff(off, way_mode, seek_mode);
 }
