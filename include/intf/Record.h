@@ -71,6 +71,47 @@ public:
     virtual bool operator!=(const Record & rec) const = 0;
 };
 
+template<typename TReturnValue>
+TReturnValue Record::Bad(Record & rec, const TReturnValue & val)
+{
+    rec.m_status |= (StatusValueType)StatusType::bad;
+    return val;
+}
+
+template<typename TReturnValue>
+TReturnValue Record::Bad(const Record & rec, const TReturnValue & val)
+{
+    return Bad(const_cast<Record &>(rec), val);
+}
+
+template<typename TReturnValue>
+TReturnValue Record::Good(Record & rec, const TReturnValue & val)
+{
+    rec.m_status = (StatusValueType)StatusType::good;
+    return val;
+}
+
+template<typename TReturnValue>
+TReturnValue Record::Good(const Record & rec, const TReturnValue & val)
+{
+    return Good(const_cast<Record &>(rec), val);
+}
+
+template<typename TReturnValue>
+TReturnValue Record::OutOfSynchronization(Record & rec, 
+    const TReturnValue & val)
+{
+    rec.m_status |= (StatusValueType)StatusType::out_of_sync;
+    return val;
+}
+
+template<typename TReturnValue>
+TReturnValue Record::OutOfSynchronization(const Record & rec, 
+    const TReturnValue & val)
+{
+    return OutOfSynchronization(const_cast<Record &>(rec), val);
+}
+
 } //!intf
 
 #endif //!INTF_RECORD_H_
