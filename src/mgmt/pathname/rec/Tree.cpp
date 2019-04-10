@@ -91,32 +91,29 @@ void Tree::Pathname(const string & pathname)
 
 typename Tree::SizeType Tree::Put(OutputType & out) const
 {
-    if (m_sync_flags & ms_position_sync)
+    if (IsInitial() || (m_sync_flags & ms_position_sync))
     {
-        if (!out.Put((const char *)&m_position, sizeof(FilePositionType)))
-            return Bad<SizeType>(*this, 0);
-        const_cast<SyncType &>(m_sync_flags) ^= ms_position_sync;
+        if (out.CurrentPut((const char *)&m_position, 
+            sizeof(FilePositionType)) == 0) return Bad<SizeType>(*this, 0);
+        if (m_sync_flags & ms_position_sync)
+            const_cast<SyncType &>(m_sync_flags) ^= ms_position_sync;
     }
-    else
-        out.SeekOffset(sizeof(FilePositionType), WayType::current);
-    return Good<SizeType>(*this, 
-        sizeof(FilePositionType));
+    out.SeekOffset(sizeof(FilePositionType), WayType::current);
+    return Good<SizeType>(*this, sizeof(FilePositionType));
 }
 
 typename Tree::SizeType Tree::Get(InputType & in)
 {
-    if (m_sync_flags & ms_position_sync)
+    if (IsInitial() || (m_sync_flags & ms_position_sync))
     {
-        if (!in.Get((char *)&m_position, sizeof(FilePositionType)))
+        if (in.CurrentGet((char *)&m_position, sizeof(FilePositionType)) == 0)
             return Bad<SizeType>(*this, 0);
-        m_sync_flags ^= ms_position_sync;
+        if (m_sync_flags & ms_position_sync)
+            m_sync_flags ^= ms_position_sync;
     }
-    else
-        in.SeekOffset(sizeof(FilePositionType), WayType::current);
-    return Good<SizeType>(*this, 
-        sizeof(FilePositionType));
+    in.SeekOffset(sizeof(FilePositionType), WayType::current);
+    return Good<SizeType>(*this, sizeof(FilePositionType));
 }
-
 
 bool Tree::operator==(const RecordInterfaceType & rec) const
 {
