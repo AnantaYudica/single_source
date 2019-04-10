@@ -118,7 +118,7 @@ typename Cache::PathnameType
 Cache::Get(const KeyValueType & key)
 {
     auto fn = MapFind(key);
-    if (MapHas(fn)) return PathnameType();
+    if (!MapHas(fn)) return PathnameType();
     return fn->second;
 }
 
