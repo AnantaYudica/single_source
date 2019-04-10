@@ -102,6 +102,15 @@ typename Filebuf::SizeType Filebuf::Put(const char & ch)
     return (m_filebuf.sputc(ch) != EOF ? 1 : 0);
 }
 
+typename Filebuf::SizeType Filebuf::Put(const char & ch, 
+    const SizeType & count)
+{
+    if (!m_filebuf.is_open()) return 0;
+    for (SizeType i = 0; i < count; ++i)
+        if (m_filebuf.sputc(ch) == EOF) return i;
+    return count;
+}
+
 typename Filebuf::SizeType Filebuf::Get(char * buffer, 
     const SizeType & size)
 {
@@ -133,6 +142,20 @@ typename Filebuf::SizeType Filebuf::CurrentPut(const char & ch)
     if (size_ch == EOF) return 0;
     m_filebuf.pubseekoff(-1, ios_base::cur, ios_base::out);
     return 1;
+}
+
+typename Filebuf::SizeType Filebuf::CurrentPut(const char & ch, 
+    const SizeType & count)
+{
+    if (!m_filebuf.is_open()) return 0;
+    SizeType i = 0;
+    while(i < count)
+    {
+        if (m_filebuf.sputc(ch) == EOF) break;
+        ++i;
+    }
+    m_filebuf.pubseekoff(-i, ios_base::cur, ios_base::out);
+    return i;
 }
 
 typename Filebuf::SizeType Filebuf::CurrentGet(char * buffer, 

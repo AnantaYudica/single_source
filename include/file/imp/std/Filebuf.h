@@ -58,12 +58,14 @@ public:
 public:
     SizeType Put(const char * buffer, const SizeType & size);
     SizeType Put(const char & ch);
+    SizeType Put(const char & ch, const SizeType & count);
 public:
     SizeType Get(char * buffer, const SizeType & size);
     int Get();
 public:
     SizeType CurrentPut(const char * buffer, const SizeType & size);
     SizeType CurrentPut(const char & ch);
+    SizeType CurrentPut(const char & ch, const SizeType & count);
 public:
     SizeType CurrentGet(char * buffer, const SizeType & size);
     int CurrentGet();
