@@ -37,6 +37,8 @@ public:
     typedef defn::file::ModeValueType ModeValueType;
     typedef defn::file::Way WayType;
     typedef file::format::Linear FileFormatLinearType;
+    typedef typename FileFormatLinearType::PointerType
+        FileFormatLinearPointerType;
     typedef struc::tree::avl::intf::
         Pointer<TreeRecordType> TreePointerType;
     typedef struc::tree::avl::intf::
@@ -52,7 +54,8 @@ private:
     std::string m_tree_str;
     FileInterfacePointerType m_linear_file;
     FileInterfacePointerType m_tree_file;
-    FileFormatLinearType m_linear_format_file;
+    FileFormatLinearPointerType m_linear_format_file;
+    FileFormatLinearPointerType m_tree_format_file;
     TreeNodePointerType m_tree_root_node;
     TreeType m_tree;
     std::function<CompareFunctionType> m_compare_func;
@@ -72,10 +75,9 @@ private:
     int Compare(const TreeRecordType & a_rec, 
         const TreeRecordType & b_rec);
 public:
-    void Insert(const KeyValueType & key, 
-        const PathnameType & pathname);
+    KeyValueType Insert(const PathnameType & pathname);
 public:
-    void Remove(const KeyValueType & key);
+    PathnameType Remove(const KeyValueType & key);
     void Remove(const PathnameType & pathname);
 public:
     PathnameType Get(const KeyValueType & key);
