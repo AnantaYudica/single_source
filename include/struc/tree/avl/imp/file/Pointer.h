@@ -97,33 +97,33 @@ void Pointer<TData>::Default()
 }
 
 template<typename TData>
-void Pointer<TData>::Set(const PositionType & pos)
+void Pointer<TData>::SetPosition(const PositionType & pos)
 {
     switch(m_way)
     {
         case WayType::parent:
-            m_point->Parent(pos);
+            m_point->ParentPosition(pos);
             break;
         case WayType::left:
-            m_point->Left(pos);
+            m_point->LeftPosition(pos);
             break;
         case WayType::right:
-            m_point->Right(pos);
+            m_point->RightPosition(pos);
             break;
     };
 }
 
 template<typename TData>
-typename Pointer<TData>::PositionType Pointer<TData>::Get()
+typename Pointer<TData>::PositionType Pointer<TData>::GetPosition()
 {
     switch(m_way)
     {
         case WayType::parent:
-            return m_point->Parent();
+            return m_point->ParentPosition();
         case WayType::left:
-            return m_point->Left();
+            return m_point->LeftPosition();
         case WayType::right:
-            return m_point->Right();
+            return m_point->RightPosition();
     }
     return -1;
 }
@@ -132,7 +132,7 @@ template<typename TData>
 typename Pointer<TData>::NodeType * Pointer<TData>::Node()
 {
     if (m_next != nullptr) return m_next;
-    const auto pos = Get();
+    auto pos = GetPosition();
     if (pos != -1) m_next = new NodeType(std::move(m_point->Instance(pos)));
     return m_next;
 }
@@ -159,8 +159,8 @@ Pointer<TData>::Emplace(const DataType & data)
     Reset();
     m_next = new NodeType(std::move(m_point->Instance()));
     m_next->Emplace(data);
-    m_next->Parent(m_point->Position());
-    Set(m_next->Position());
+    m_next->ParentPosition(m_point->Position());
+    SetPosition(m_next->Position());
     return *this;
 }
 
@@ -169,7 +169,7 @@ typename Pointer<TData>::PointerInterfaceType &  Pointer<TData>::Displace()
 {
     if (IsNull() || !m_next) return *this;
     Reset();
-    Set(-1);
+    SetPosition(-1);
     return *this;
 }
 
@@ -180,7 +180,7 @@ Pointer<TData> & Pointer<TData>::operator=(const NodeInterfaceType & other)
     auto ptr = dynamic_cast<const NodeType *>(&other);
     if (!ptr) return *this;
     Reset();
-    Set(ptr->Position());
+    SetPosition(ptr->Position());
     return *this;
 }
 

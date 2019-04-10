@@ -48,8 +48,8 @@ public:
 private:
     void Default();
 private:
-    void Set(const PositionType & pos);
-    PositionType Get();
+    void SetPosition(const PositionType & pos);
+    PositionType GetPosition();
 private:
     NodeType * Node();
 private:
