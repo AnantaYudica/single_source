@@ -24,7 +24,6 @@ private:
 public:
     static Pathname & GetInstance();
 private:
-    KeyValueType m_count;
     CacheType m_cache;
     TemporaryType m_temporary;
     std::mutex m_mutex;
