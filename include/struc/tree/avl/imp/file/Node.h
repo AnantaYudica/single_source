@@ -26,38 +26,41 @@ namespace file
 template<typename TData>
 Node<TData>::Node() :
     m_record(),
+    m_position(-1),
     m_file(nullptr),
-    m_fileFormatLinear(),
+    m_fileFormatLinear(nullptr),
     m_parent(nullptr),
     m_right(nullptr),
     m_left(nullptr)
 {}
 
 template<typename TData>
-Node<TData>::Node(FileInterfacePointerType file) :
-    m_record(),
-    m_file(file),
-    m_fileFormatLinear(file, static_cast<std::size_t>(::defn::rec::
-        Size<RecordType>::Value)),
-    m_parent(nullptr),
-    m_right(nullptr),
-    m_left(nullptr)
+Node<TData>::Node(FileInterfacePointerType file, 
+    FileFormatLinearPointerType format) :
+        m_record(),
+        m_position(-1),
+        m_file(file),
+        m_fileFormatLinear(format),
+        m_parent(nullptr),
+        m_right(nullptr),
+        m_left(nullptr)
 {}
 
 template<typename TData>
-Node<TData>::Node(FileInterfacePointerType file, PositionType position) :
-    m_record(),
-    m_file(file),
-    m_fileFormatLinear(file, static_cast<std::size_t>(::defn::rec::
-        Size<RecordType>::Value)),
-    m_parent(nullptr),
-    m_right(nullptr),
-    m_left(nullptr)
+Node<TData>::Node(FileInterfacePointerType file, 
+    FileFormatLinearPointerType format, const PositionType & position) :
+        m_record(),
+        m_position(position),
+        m_file(file),
+        m_fileFormatLinear(format),
+        m_parent(nullptr),
+        m_right(nullptr),
+        m_left(nullptr)
 {
-    if (position != -1) 
+    if (position != -1 && IsValid()) 
     {
-        m_fileFormatLinear.SeekPosition(position);
-        m_fileFormatLinear.CurrentGet(m_record);
+        m_fileFormatLinear->SeekPosition(position);
+        m_fileFormatLinear->CurrentGet(m_record);
         m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
         m_right = new Pointer<TData>(this, Pointer<TData>::WayType::right);
         m_left = new Pointer<TData>(this, Pointer<TData>::WayType::left);
@@ -78,6 +81,7 @@ Node<TData>::~Node()
 template<typename TData>
 Node<TData>::Node(const Node<TData> & cpy) :
     m_record(cpy.m_record),
+    m_position(cpy.m_position),
     m_file(cpy.m_file),
     m_fileFormatLinear(cpy.m_fileFormatLinear),
     m_parent(nullptr),
@@ -92,6 +96,7 @@ Node<TData>::Node(const Node<TData> & cpy) :
 template<typename TData>
 Node<TData>::Node(Node<TData> && mov) :
     m_record(std::move(mov.m_record)),
+    m_position(std::move(mov.m_position)),
     m_file(std::move(mov.m_file)),
     m_fileFormatLinear(std::move(mov.m_fileFormatLinear)),
     m_parent(std::move(mov.m_parent)),
@@ -105,6 +110,7 @@ template<typename TData>
 Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
 {
     m_record = cpy.m_record;
+    m_position = cpy.m_position;
     m_file = cpy.m_file;
     m_fileFormatLinear = cpy.m_fileFormatLinear;
     m_parent = new Pointer<TData>(this, Pointer<TData>::WayType::parent);
@@ -117,6 +123,7 @@ template<typename TData>
 Node<TData> & Node<TData>::operator=(Node<TData> && mov)
 {
     m_record = std::move(mov.m_record);
+    m_position = std::move(mov.m_position);
     m_file = std::move(mov.m_file);
     m_fileFormatLinear = std::move(mov.m_fileFormatLinear);
     m_parent = std::move(mov.m_parent);
@@ -146,6 +153,7 @@ template<typename TData>
 Node<TData> & Node<TData>::operator=(const TData & data)
 {
     m_record.Data(data);
+    m_fileFormatLinear->CurrentPut(m_record);
     return *this;
 }
 
@@ -153,17 +161,25 @@ template<typename TData>
 void Node<TData>::Default()
 {
     m_record = RecordType();
+    m_position = -1;
     m_file = nullptr;
-    m_fileFormatLinear = FileFormatLinearType();
+    m_fileFormatLinear = nullptr;
     m_parent = nullptr;
     m_right = nullptr;
     m_left = nullptr;
 }
 
 template<typename TData>
+bool Node<TData>::IsValid() const
+{
+    return m_file && m_file->IsOpen() && m_fileFormatLinear &&
+        m_file == m_fileFormatLinear->File();
+}
+
+template<typename TData>
 Node<TData> Node<TData>::Instance(PositionType position) const
 {
-    return Node<TData>{m_file, position};
+    return Node<TData>{m_file, m_fileFormatLinear, position};
 }
 
 template<typename TData>
@@ -182,29 +198,30 @@ typename Node<TData>::NodeInterfacePointerType Node<TData>::MakeMove()
 template<typename TData>
 Node<TData> & Node<TData>::Emplace(const TData & data)
 {
-    if (!m_file || !m_file->IsOpen()) return *this;
+    if (!IsValid()) return *this;
     if (!m_record.IsInitial())
         m_record = RecordType();
-    m_fileFormatLinear.SeekOffset(0, WayType::end);
+    m_position = m_fileFormatLinear->Size();
+    m_fileFormatLinear->SeekOffset(0, WayType::end);
     m_record.Data(data);
-    m_fileFormatLinear.CurrentPut(m_record);
+    m_fileFormatLinear->CurrentPut(m_record);
     return *this;
 }
 
 template<typename TData>
 Node<TData> & Node<TData>::Displace()
 {
-    if (!m_file || !m_file->IsOpen() || m_record.Current() == -1) return *this;
+    if (!IsValid() && m_position == -1) return *this;
     m_record.Flags(m_record.Flags() | RecordType::delete_flag);
-    m_fileFormatLinear.SeekPosition(m_record.Current());
-    m_fileFormatLinear.CurrentPut(m_record);
+    Synchronize();
+    m_position = -1;
     return *this;
 }
 
 template<typename TData>
 typename Node<TData>::PositionType Node<TData>::Position() const
 {
-    return m_record.Current();
+    return m_position;
 }
 
 template<typename TData>
@@ -227,9 +244,16 @@ Node<TData>::Parent() const
 }
 
 template<typename TData>
-void Node<TData>::Parent(const PositionType & new_position)
+typename Node<TData>::PositionType Node<TData>::ParentPosition() const
+{
+    return m_record.Parent();
+}
+
+template<typename TData>
+void Node<TData>::ParentPosition(const PositionType & new_position)
 {
     m_record.Parent(new_position);
+    Synchronize();
 }
 
 template<typename TData>
@@ -252,9 +276,16 @@ Node<TData>::Right() const
 }
 
 template<typename TData>
-void Node<TData>::Right(const PositionType & new_position)
+typename Node<TData>::PositionType Node<TData>::RightPosition() const
+{
+    return m_record.Right();
+}
+
+template<typename TData>
+void Node<TData>::RightPosition(const PositionType & new_position)
 {
     m_record.Right(new_position);
+    Synchronize();
 }
 
 template<typename TData>
@@ -277,9 +308,16 @@ Node<TData>::Left() const
 }
 
 template<typename TData>
-void Node<TData>::Left(const PositionType & new_position)
+typename Node<TData>::PositionType Node<TData>::LeftPosition() const
+{
+    return m_record.Left();
+}
+
+template<typename TData>
+void Node<TData>::LeftPosition(const PositionType & new_position)
 {
     m_record.Left(new_position);
+    Synchronize();
 }
 
 template<typename TData>
@@ -325,7 +363,8 @@ bool Node<TData>::IsDeleted()
 template<typename TData>
 void Node<TData>::Synchronize()
 {
-    m_fileFormatLinear.CurrentPut(m_record);
+    m_fileFormatLinear->SeekPosition(m_position);
+    m_fileFormatLinear->CurrentPut(m_record);
 }
 
 template<typename TData>
@@ -339,6 +378,7 @@ bool Node<TData>::operator==(const NodeInterfaceType & other) const
 {
     auto node = dynamic_cast<const Node<TData> *>(&other);
     return node && m_file == node->m_file &&
+        m_fileFormatLinear == node->m_fileFormatLinear &&
         m_record == node->m_record;
 }
 
@@ -347,14 +387,16 @@ bool Node<TData>::operator!=(const NodeInterfaceType & other) const
 {
     auto node = dynamic_cast<const Node<TData> *>(&other);
     return !node || m_file != node->m_file ||
+        m_fileFormatLinear != node->m_fileFormatLinear ||
         m_record != node->m_record;
 }
 
 template<typename TData>
 Node<TData>::operator bool() const
 {
-    return m_file && m_record.Current() != -1 &&
-        m_file->IsOpen();
+    return m_file && m_position != -1 &&
+        m_file->IsOpen() && m_fileFormatLinear &&
+        m_file == m_fileFormatLinear->File();
 }
 
 } //file

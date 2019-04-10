@@ -34,6 +34,8 @@ public:
         FileInterfacePointerType;
 private:
     typedef ::file::format::Linear FileFormatLinearType;
+    typedef typename FileFormatLinearType::PointerType
+        FileFormatLinearPointerType;
 public:
     typedef typename FileInterfaceType::PositionType PositionType;
     typedef typename FileInterfaceType::OffsetType OffsetType;
@@ -51,16 +53,18 @@ public:
 public:
     typedef TData DataType;
 private:
-    RecordType m_record;
-    FileInterfacePointerType m_file;
-    FileFormatLinearType m_fileFormatLinear;
+    PositionType m_position;
+    FileFormatLinearPointerType m_fileFormatLinear;
     Pointer<TData> * m_parent;
     Pointer<TData> * m_right;
     Pointer<TData> * m_left;
+    FileInterfacePointerType m_file;
+    RecordType m_record;
 public:
     Node();
-    Node(FileInterfacePointerType file);
-    Node(FileInterfacePointerType file, PositionType position);
+    Node(FileInterfacePointerType file, FileFormatLinearPointerType  format);
+    Node(FileInterfacePointerType file, FileFormatLinearPointerType  format, 
+        const PositionType & position);
 public:
     ~Node(); 
 public:
@@ -75,6 +79,8 @@ public:
     Node<TData> & operator=(const TData & data);
 private:
     void Default();
+private:
+    bool IsValid() const;
 public:
     Node<TData> Instance(PositionType position = -1) const;
 private:
@@ -89,15 +95,21 @@ public:
 public:
     PointerInterfaceType & Parent();
     const PointerInterfaceType & Parent() const;
-    void Parent(const PositionType & new_position);
+public:
+    PositionType ParentPosition() const;
+    void ParentPosition(const PositionType & new_position);
 public:
     PointerInterfaceType & Right();
     const PointerInterfaceType & Right() const;
-    void Right(const PositionType & new_position);
+public:
+    PositionType RightPosition() const;
+    void RightPosition(const PositionType & new_position);
 public:
     PointerInterfaceType & Left();
     const PointerInterfaceType & Left() const;
-    void Left(const PositionType & new_position);
+public:
+    PositionType LeftPosition() const;
+    void LeftPosition(const PositionType & new_position);
 public:
     int Hight() const;
     int Hight(const HightValueType & set);
