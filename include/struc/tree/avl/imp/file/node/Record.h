@@ -46,8 +46,7 @@ private:
     static constexpr SyncType ms_parent_sync = 0x04;
     static constexpr SyncType ms_right_sync = 0x08;
     static constexpr SyncType ms_left_sync = 0x10;
-    static constexpr SyncType ms_current_sync = 0x20;
-    static constexpr SyncType ms_data_sync = 0x40;
+    static constexpr SyncType ms_data_sync = 0x20;
 public:
     static constexpr FlagsValueType delete_flag = 0x01;
 private:
@@ -56,7 +55,6 @@ private:
     PositionType m_parent;
     PositionType m_right;
     PositionType m_left;
-    PositionType m_current;
     TData m_data;
     SyncType m_sync_flags;
 private:
@@ -100,9 +98,6 @@ public:
     const PositionType & Left() const;
     void Left(const PositionType & left);
 public:
-    const PositionType & Current() const;
-    void Current(const PositionType & curr);
-public:
     const TData & Data() const;
     void Data(const TData & data);
 public:
@@ -122,65 +117,68 @@ void Record<TData>::Default(Record<TData> & rec)
     rec.m_parent = -1;
     rec.m_right = -1;
     rec.m_left = -1;
-    rec.m_current = -1;
     rec.m_data = TData();
     rec.m_sync_flags = 0;
 }
 
 template<typename TData>
 template<typename TValue>
-typename Record<TData>::SizeType Record<TData>::Put(const Record<TData> & rec,
-    OutputType & out, const TValue & val, const SyncType & sync_flags, 
-    SyncType sync_index_val)
+typename Record<TData>::SizeType 
+Record<TData>::Put(const Record<TData> & rec, OutputType & out, 
+    const TValue & val, const SyncType & sync_flags, SyncType sync_index_val)
 {
-    if (sync_flags & sync_index_val)
+    if (rec.IsInitial() || (sync_flags & sync_index_val))
     {
-        if (!out.Put((const char *)&val, sizeof(TValue)))
+        if (out.CurrentPut((const char *)&val, sizeof(TValue)) == 0)
             return Bad<SizeType>(rec, 0);
-        const_cast<SyncType &>(sync_flags) ^= sync_index_val;
+        if (sync_flags & sync_index_val)
+            const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
-    else
-        out.SeekOffset(sizeof(TValue), WayType::current);
+    out.SeekOffset(sizeof(TValue), WayType::current);
     return sizeof(TValue);
 }
 
 template<typename TData>
-typename Record<TData>::SizeType Record<TData>::Put(const Record<TData> & rec,
-    OutputType & out, const ::intf::Record & intf_rec, 
-    const SyncType & sync_flags, SyncType sync_index_val)
+typename Record<TData>::SizeType 
+Record<TData>::Put(const Record<TData> & rec, OutputType & out, 
+    const ::intf::Record & intf_rec, const SyncType & sync_flags, 
+    SyncType sync_index_val)
 {
-    if (sync_flags & sync_index_val)
+    if (rec.IsInitial() || (sync_flags & sync_index_val))
     {
-        if (!intf_rec.Put(out)) return Bad<SizeType>(rec, 0);
-        const_cast<SyncType &>(sync_flags) ^= sync_index_val;
+        if (intf_rec.Put(out) == 0) return Bad<SizeType>(rec, 0);
+        if (sync_flags & sync_index_val)
+            const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
-    else
-        out.SeekOffset(static_cast<std::size_t>(::defn::rec::
-            Size<TData>::Value), WayType::current);
+    out.SeekOffset(static_cast<std::size_t>(::defn::rec::
+        Size<TData>::Value), WayType::current);
     return static_cast<std::size_t>(::defn::rec::Size<TData>::Value);
 }
 
 template<typename TData>
 template<typename TValue>
-typename Record<TData>::SizeType Record<TData>::Get(Record<TData> & rec,
-    InputType & in, TValue & val, SyncType & sync_flags, 
-    SyncType sync_index_val)
+typename Record<TData>::SizeType 
+Record<TData>::Get(Record<TData> & rec, InputType & in, TValue & val, 
+    SyncType & sync_flags, SyncType sync_index_val)
 {
     char * buffer = reinterpret_cast<char *>(&val);
-    if (!in.Get(buffer, sizeof(TValue))) return Bad<SizeType>(rec, 0);
+    if (!in.CurrentGet(buffer, sizeof(TValue))) return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
+    in.SeekOffset(sizeof(TValue), WayType::current);
     return sizeof(TValue);
 }
 
 template<typename TData>
-typename Record<TData>::SizeType Record<TData>::Get(Record<TData> & rec,
-    InputType & in, ::intf::Record & intf_rec, SyncType & sync_flags, 
-    SyncType sync_index_val)
+typename Record<TData>::SizeType 
+Record<TData>::Get(Record<TData> & rec, InputType & in, 
+    ::intf::Record & intf_rec, SyncType & sync_flags, SyncType sync_index_val)
 {
     if (!intf_rec.Get(in)) return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
+    in.SeekOffset(static_cast<std::size_t>(::defn::rec::
+        Size<TData>::Value), WayType::current);
     return static_cast<std::size_t>(::defn::rec::Size<TData>::Value);
 }
 
@@ -192,7 +190,6 @@ Record<TData>::Record() :
     m_parent(-1),
     m_right(-1),
     m_left(-1),
-    m_current(-1),
     m_data(),
     m_sync_flags(0)
 {}
@@ -205,7 +202,6 @@ Record<TData>::Record(const Record<TData> & cpy) :
     m_parent(cpy.m_parent),
     m_right(cpy.m_right),
     m_left(cpy.m_left),
-    m_current(cpy.m_current),
     m_data(cpy.m_data),
     m_sync_flags(cpy.m_sync_flags)
 {}
@@ -218,7 +214,6 @@ Record<TData>::Record(Record<TData> && mov) :
     m_parent(std::move(mov.m_parent)),
     m_right(std::move(mov.m_right)),
     m_left(std::move(mov.m_left)),
-    m_current(std::move(mov.m_current)),
     m_data(std::move(mov.m_data)),
     m_sync_flags(std::move(mov.m_sync_flags))
 {
@@ -234,7 +229,6 @@ Record<TData> & Record<TData>::operator=(const Record<TData> & cpy)
     m_parent = cpy.m_parent;
     m_right = cpy.m_right;
     m_left = cpy.m_left;
-    m_current = cpy.m_current;
     m_data = cpy.m_data;
     m_sync_flags = cpy.m_sync_flags;
     return *this;
@@ -249,7 +243,6 @@ Record<TData> & Record<TData>::operator=(Record<TData> && mov)
     m_parent = std::move(mov.m_parent);
     m_right = std::move(mov.m_right);
     m_left = std::move(mov.m_left);
-    m_current = std::move(mov.m_current);
     m_data = std::move(mov.m_data);
     m_sync_flags = std::move(mov.m_sync_flags);
     Default(mov);
@@ -332,21 +325,6 @@ void Record<TData>::Left(const PositionType & left)
 }
 
 template<typename TData>
-const typename Record<TData>::PositionType & Record<TData>::Current() const
-{
-    return m_current;
-}
-
-template<typename TData>
-void Record<TData>::Current(const PositionType & curr)
-{
-    if (curr == m_current) return;
-    m_current = curr;
-    m_sync_flags |= ms_current_sync;
-    OutOfSynchronization(*this);
-}
-
-template<typename TData>
 const TData & Record<TData>::Data() const
 {
     return m_data;
@@ -374,8 +352,6 @@ typename Record<TData>::SizeType Record<TData>::Put(OutputType & out) const
     if (!Put(*this, out, m_right, m_sync_flags, ms_right_sync))
         return 0;
     if (!Put(*this, out, m_left, m_sync_flags, ms_left_sync))
-        return 0;
-    if (!Put(*this, out, m_current, m_sync_flags, ms_current_sync))
         return 0;
     if (!Put(*this, out, m_data, m_sync_flags, ms_data_sync))
         return 0;
@@ -413,7 +389,6 @@ bool Record<TData>::operator==(const RecordInterfaceType & rec_intf) const
         m_hight == rec->m_hight &&
         m_left == rec->m_left &&
         m_right == rec->m_right &&
-        m_current == rec->m_current &&
         m_parent == rec->m_parent &&
         m_data == rec->m_data;
 }
@@ -445,7 +420,6 @@ struct defn::rec::Size<struc::tree::avl::imp::file::node::Record<TData>>
     static constexpr ValueType Value = 
         sizeof(typename RecordDataType::FlagsValueType) +
         sizeof(typename RecordDataType::HightValueType) +
-        sizeof(typename RecordDataType::PositionType) +
         sizeof(typename RecordDataType::PositionType) +
         sizeof(typename RecordDataType::PositionType) +
         sizeof(typename RecordDataType::PositionType) +
