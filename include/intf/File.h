@@ -57,10 +57,12 @@ public:
 public:
     virtual SizeType Put(const char * buffer, const SizeType & size) = 0;
     virtual SizeType Put(const char & ch) = 0;
+    virtual SizeType Put(const char & ch, const SizeType & count) = 0;
 public:
     virtual SizeType CurrentPut(const char * buffer, 
         const SizeType & size) = 0;
     virtual SizeType CurrentPut(const char & ch) = 0;
+    virtual SizeType CurrentPut(const char & ch, const SizeType & count) = 0;
 public:
     virtual SizeType Get(char * buffer, const SizeType & size) = 0;
     virtual int Get() = 0;
