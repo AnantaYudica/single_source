@@ -53,23 +53,28 @@ typename Linear::SizeType Linear::ElementSize() const
     return m_elem_size;
 }
 
+typename Linear::FileInterfacePointerType Linear::File()
+{
+    return m_file;
+}
+
 typename Linear::PositionType Linear::SeekPosition(const PositionType & pos,
     const ModeValueType & mode)
 {
-    if (!m_file) return -1;
+    if (!m_file) return 0;
     return m_file->SeekPosition(pos * m_elem_size, mode);
 }
 
 typename Linear::PositionType Linear::SeekOffset(const OffsetType & off, 
     const WayType & way, const ModeValueType & mode)
 {
-    if (!m_file) return -1;
+    if (!m_file) return 0;
     return m_file->SeekOffset(off * m_elem_size, way, mode);
 }
 
 typename Linear::SizeType Linear::Put(const RecordInterfaceType & rec)
 {
-    if (m_file) return 0;
+    if (!m_file) return 0;
     const auto pos = m_file->SeekOffset(0, WayType::current,
         (ModeValueType)ModeType::output);
     auto size_ch = rec.Put(*m_file);
@@ -103,7 +108,7 @@ typename Linear::SizeType Linear::Get(char * buffer, const SizeType & size)
 
 typename Linear::SizeType Linear::Get(RecordInterfaceType & rec)
 {
-    if (m_file) return 0;
+    if (!m_file) return 0;
     const auto pos = m_file->SeekOffset(0, WayType::current,
         (ModeValueType)ModeType::input);
     auto size_ch = rec.Get(*m_file);
@@ -200,4 +205,12 @@ typename Linear::SizeType Linear::CurrentGet(const OffsetType & offset,
     if (size_ch == EOF) return 0;
     m_file->SeekPosition(pos, (ModeValueType)ModeType::input);
     return size_ch; 
+}
+
+typename Linear::SizeType Linear::Size()
+{
+    if (!m_file || !m_file->IsOpen()) return 0;
+    auto pos = m_file->SeekOffset(0, WayType::end);
+    if (pos == EOF) return 0;
+    return SizeType(pos / m_elem_size);
 }

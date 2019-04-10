@@ -7,6 +7,8 @@
 #include "../../intf/Record.h"
 #include "../../defn/file/Mode.h"
 
+#include <memory>
+
 namespace file
 {
 namespace format
@@ -14,6 +16,8 @@ namespace format
 
 class Linear
 {
+public:
+    typedef std::shared_ptr<Linear> PointerType;
 public:
     typedef intf::File FileInterfaceType;
     typedef typename FileInterfaceType::PointerType
@@ -71,6 +75,8 @@ public:
         const SizeType & size);
     SizeType CurrentGet(RecordInterfaceType & rec);
     SizeType CurrentGet(const OffsetType & offset, RecordInterfaceType & rec);
+public:
+    SizeType Size();
 };
 
 } //!format
