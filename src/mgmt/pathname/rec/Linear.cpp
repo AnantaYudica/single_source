@@ -85,53 +85,63 @@ void Linear::Value(const string & pathname)
 
 typename Linear::SizeType Linear::Put(OutputType & out) const
 {
-    if (m_sync_flags & ms_flags_sync)
+    if (IsInitial() || (m_sync_flags & ms_flags_sync))
     {
-        if (!out.Put((const char *)&m_flags, sizeof(FlagsValueType)))
-            return Bad<SizeType>(*this, 0);
-        const_cast<SyncType &>(m_sync_flags) ^= ms_flags_sync;
+        if (out.CurrentPut((const char *)&m_flags, 
+            sizeof(FlagsValueType)) == 0) return Bad<SizeType>(*this, 0);
+        if (m_sync_flags & ms_flags_sync)
+            const_cast<SyncType &>(m_sync_flags) ^= ms_flags_sync;
     }
-    else
-        out.SeekOffset(sizeof(FlagsValueType), WayType::current);
-    if (m_sync_flags & ms_pathname_sync)
+    out.SeekOffset(sizeof(FlagsValueType), WayType::current);
+    if (IsInitial() || (m_sync_flags & ms_pathname_sync))
     {
         const auto size = m_pathname.size() < ms_pathname_alloc_size ?
             m_pathname.size() : ms_pathname_alloc_size;
-        if (!out.Put(m_pathname.c_str(), size))
+        char * buffer = new char[ms_pathname_alloc_size + 1];
+        memcpy(buffer, m_pathname.c_str(), size);
+        buffer[size] = '\0';
+        if (out.CurrentPut(buffer, 
+            static_cast<SizeType>(ms_pathname_alloc_size) + 1) == 0)
+        {
+            delete[] buffer;
             return Bad<SizeType>(*this, 0);
-        const_cast<SyncType &>(m_sync_flags) ^= ms_pathname_sync;
-        out.SeekOffset(ms_pathname_alloc_size - size, WayType::current);
+        }
+        if (m_sync_flags & ms_pathname_sync)
+            const_cast<SyncType &>(m_sync_flags) ^= ms_pathname_sync;
+        delete[] buffer;
     }
-    else
-        out.SeekOffset(ms_pathname_alloc_size, WayType::current);
-    return Good<SizeType>(*this, 
-        sizeof(FilePositionType));
+    out.SeekOffset(ms_pathname_alloc_size, WayType::current);
+    return Good<SizeType>(*this, sizeof(FilePositionType));
 }
 
 typename Linear::SizeType Linear::Get(InputType & in)
 {
-    if (m_sync_flags & ms_flags_sync)
+    if (IsInitial() || (m_sync_flags & ms_flags_sync))
     {
-        if (!in.Get((char *)&m_flags, sizeof(FlagsValueType)))
-            return Bad<SizeType>(*this, 0);
-        m_sync_flags ^= ms_flags_sync;
+        if (in.CurrentGet((char *)&m_flags, 
+            sizeof(FlagsValueType)) == 0)return Bad<SizeType>(*this, 0);
+        if (m_sync_flags & ms_flags_sync)
+            m_sync_flags ^= ms_flags_sync;
     }
-    else
-        in.SeekOffset(sizeof(FlagsValueType), WayType::current);
-    if (m_sync_flags & ms_pathname_sync)
+    in.SeekOffset(sizeof(FlagsValueType), WayType::current);
+    if (IsInitial() || (m_sync_flags & ms_pathname_sync))
     {
-        char buffer[ms_pathname_alloc_size + 1];
-        auto size = in.Get(buffer, sizeof(ms_pathname_alloc_size));
-        if (size == 0) return Bad<SizeType>(*this, 0);
+        char * buffer = new char[ms_pathname_alloc_size + 1];
+        auto size = in.CurrentGet(buffer, 
+            static_cast<SizeType>(ms_pathname_alloc_size) + 1);
+        if (size == 0) 
+        {
+            delete[] buffer;
+            return Bad<SizeType>(*this, 0);
+        }
         buffer[ms_pathname_alloc_size] = '\0';
         m_pathname = buffer;
-        m_sync_flags ^= ms_pathname_sync;
-        in.SeekOffset(ms_pathname_alloc_size - size, WayType::current);
+        if (m_sync_flags & ms_pathname_sync)
+            m_sync_flags ^= ms_pathname_sync;
+        delete[] buffer;
     }
-    else
-        in.SeekOffset(ms_pathname_alloc_size, WayType::current);
-    return Good<SizeType>(*this, 
-        sizeof(FilePositionType));
+    in.SeekOffset(ms_pathname_alloc_size, WayType::current);
+    return Good<SizeType>(*this, sizeof(FilePositionType));
 }
 
 bool Linear::operator==(const RecordInterfaceType & rec) const

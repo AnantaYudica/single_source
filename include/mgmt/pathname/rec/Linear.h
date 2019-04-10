@@ -86,7 +86,7 @@ struct defn::rec::Size<mgmt::pathname::rec::Linear>
     typedef std::size_t ValueType;
     static constexpr ValueType Value = 
         ::mgmt::pathname::rec::Linear::ms_flags_alloc_size + 
-        ::mgmt::pathname::rec::Linear::ms_pathname_alloc_size;
+        ::mgmt::pathname::rec::Linear::ms_pathname_alloc_size + 1;
 };
 
 #endif //!MGMT_PATHNAME_REC_LINEAR_H_
