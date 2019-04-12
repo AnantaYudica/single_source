@@ -8,6 +8,7 @@
 
 #include <utility>
 #include <cstdint>
+#include <type_traits>
 
 namespace struc
 {
@@ -61,11 +62,16 @@ private:
     static void Default(Record<TData> & rec);
 private:
     template<typename TValue>
-    static SizeType Put(const Record<TData> & rec, OutputType & out, 
+    static typename std::enable_if<
+        !std::is_base_of<::intf::Record, TValue>::value, SizeType>::type  
+    Put(const Record<TData> & rec, OutputType & out, 
         const TValue & val, const SyncType & sync_flags, 
         SyncType sync_index_val);
-    static SizeType Put(const Record<TData> & rec, OutputType & out, 
-        const ::intf::Record & intf_rec, const SyncType & sync_flags, 
+    template<typename TValue>
+    static typename std::enable_if<
+        std::is_base_of<::intf::Record, TValue>::value, SizeType>::type 
+    Put(const Record<TData> & rec, OutputType & out, 
+        const TValue & intf_rec, const SyncType & sync_flags, 
         SyncType sync_index_val);
 private:
     template<typename TValue>
@@ -123,7 +129,9 @@ void Record<TData>::Default(Record<TData> & rec)
 
 template<typename TData>
 template<typename TValue>
-typename Record<TData>::SizeType 
+typename std::enable_if<
+    !std::is_base_of<::intf::Record, TValue>::value, 
+    typename Record<TData>::SizeType>::type 
 Record<TData>::Put(const Record<TData> & rec, OutputType & out, 
     const TValue & val, const SyncType & sync_flags, SyncType sync_index_val)
 {
@@ -139,9 +147,12 @@ Record<TData>::Put(const Record<TData> & rec, OutputType & out,
 }
 
 template<typename TData>
-typename Record<TData>::SizeType 
+template<typename TValue>
+typename std::enable_if<
+    std::is_base_of<::intf::Record, TValue>::value, 
+    typename Record<TData>::SizeType>::type 
 Record<TData>::Put(const Record<TData> & rec, OutputType & out, 
-    const ::intf::Record & intf_rec, const SyncType & sync_flags, 
+    const TValue & intf_rec, const SyncType & sync_flags, 
     SyncType sync_index_val)
 {
     if (rec.IsInitial() || (sync_flags & sync_index_val))
