@@ -82,6 +82,7 @@ private:
         SyncType sync_index_val);
 public:
     Record();
+    ~Record();
 public:
     Record(const Record<TData> & cpy);
     Record(Record<TData> && mov);
@@ -123,7 +124,7 @@ void Record<TData>::Default(Record<TData> & rec)
     rec.m_parent = -1;
     rec.m_right = -1;
     rec.m_left = -1;
-    rec.m_data = TData();
+    rec.m_data = std::move(TData());
     rec.m_sync_flags = 0;
 }
 
@@ -204,6 +205,17 @@ Record<TData>::Record() :
     m_data(),
     m_sync_flags(0)
 {}
+
+template<typename TData>
+Record<TData>::~Record()
+{
+    m_flags = 0;
+    m_hight = 0;
+    m_parent = -1;
+    m_right = -1;
+    m_left = -1;
+    m_sync_flags = 0;
+}
 
 template<typename TData>
 Record<TData>::Record(const Record<TData> & cpy) :
