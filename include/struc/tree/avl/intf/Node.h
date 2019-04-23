@@ -2,9 +2,9 @@
 #define STRUC_TREE_AVL_INTF_NODE_H_
 
 #include "Node.decl.h"
-#include "Pointer.h"
+#include "Edge.h"
 
-#include <memory>
+#include <cstdint>
 
 namespace struc
 {
@@ -21,7 +21,6 @@ class Node
 public:
     typedef std::uint32_t HightValueType;
     typedef TData DataType;
-    typedef std::shared_ptr<Node<DataType>> PointerType;
 protected:
     Node() = default;
 public:
@@ -33,33 +32,22 @@ public:
     virtual Node<TData> & operator=(const Node<TData> &) = 0;
     virtual Node<TData> & operator=(Node<TData> &&) = 0;
 public:
-    virtual Node<TData> & operator=(const TData & data) = 0;
+    virtual Edge<TData> & Parent() = 0;
+    virtual const Edge<TData> & Parent() const = 0;
 public:
-    virtual PointerType MakeCopy() const = 0;
-    virtual PointerType MakeMove() = 0;
+    virtual Edge<TData> & Right() = 0;
+    virtual const Edge<TData> & Right() const = 0;
 public:
-    virtual Node<TData> & Emplace(const TData & data) = 0;
+    virtual Edge<TData> & Left() = 0;
+    virtual const Edge<TData> & Left() const = 0;
 public:
-    virtual Node<TData> & Displace() = 0;
+    virtual HightValueType Hight() const = 0;
+    virtual void Hight(const HightValueType & set) = 0;
 public:
-    virtual Pointer<TData> & Parent() = 0;
-    virtual const Pointer<TData> & Parent() const = 0;
-public:
-    virtual Pointer<TData> & Right() = 0;
-    virtual const Pointer<TData> & Right() const = 0;
-public:
-    virtual Pointer<TData> & Left() = 0;
-    virtual const Pointer<TData> & Left() const = 0;
-public:
-    virtual int Hight() const = 0;
-    virtual int Hight(const HightValueType & set) = 0;
-public:
-    virtual int Balance() = 0;
     virtual int Balance() const = 0;
 public:
-    virtual void Swap(Node<TData> & other) = 0;
-public:
-    virtual TData operator*() const = 0;
+    virtual TData Data() const = 0;
+    virtual void Data(const TData & data) = 0;
 public:
     virtual bool operator==(const Node<TData> & other) const = 0;
     virtual bool operator!=(const Node<TData> & other) const = 0;
