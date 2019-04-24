@@ -26,7 +26,6 @@ template<typename TData>
 Point<TData>::~Point()
 {
     m_position = -1;
-    m_record = RecordType();
 }
 
 template<typename TData>
@@ -38,10 +37,9 @@ Point<TData>::Point(const Point<TData> & cpy) :
 template<typename TData>
 Point<TData>::Point(Point<TData> && mov) :
     m_position(mov.m_position),
-    m_record(mov.m_record)
+    m_record(std::move(mov.m_record))
 {
     mov.m_position = -1;
-    mov.m_record = RecordType();
 }
 
 template<typename TData>
@@ -56,9 +54,8 @@ template<typename TData>
 Point<TData> & Point<TData>::operator=(Point<TData> && mov)
 {
     m_position = mov.m_position;
-    m_record = mov.m_record;
+    m_record = std::move(mov.m_record);
     mov.m_position = -1;
-    mov.m_record = RecordType();
     return *this;
 }
 
