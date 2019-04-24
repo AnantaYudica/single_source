@@ -36,8 +36,14 @@ private:
 public:
     ~Point();
 public:
-    ElementType * Alloacate(const PositionType & pos);
-    ElementType * Alloacate(ElementType * pointer);
+    Point(const Point<TData> &) = delete;
+    Point(Point<TData> &&) = delete;
+public:
+    Point<TData> & operator=(const Point<TData> &) = delete;
+    Point<TData> & operator=(Point<TData> &&) = delete;
+public:
+    ElementType * Allocate(const PositionType & pos);
+    ElementType * Allocate(ElementType * pointer);
     void Deallocate(ElementType * pointer);
 
 };
@@ -51,7 +57,8 @@ Point<TData> & Point<TData>::GetInstance()
 
 template<typename TData>
 Point<TData>::Point() :
-    m_list()
+    m_elemets(),
+    m_counts()
 {}
 
 template<typename TData>
@@ -65,7 +72,7 @@ Point<TData>::~Point()
 
 template<typename TData>
 typename Point<TData>::ElementType * 
-Point<TData>::Alloacate(const PositionType & pos)
+Point<TData>::Allocate(const PositionType & pos)
 {
     for (std::size_t i = 0; i < m_elemets.size(); ++i)
     {
@@ -75,13 +82,14 @@ Point<TData>::Alloacate(const PositionType & pos)
             return m_elemets[i];
         }
     }
-    m_elemets.push_back(new PointType(pos));
-    m_counts.pop_back(1);
+    m_elemets.push_back(new ElementType(pos));
+    m_counts.push_back(1);
+    return m_elemets.back();
 }
 
 template<typename TData>
 typename Point<TData>::ElementType * 
-Point<TData>::Alloacate(ElementType * pointer)
+Point<TData>::Allocate(ElementType * pointer)
 {
     if (!pointer) return nullptr;
     for (std::size_t i = 0; i < m_elemets.size(); ++i)
@@ -92,8 +100,9 @@ Point<TData>::Alloacate(ElementType * pointer)
             return pointer;
         }
     }
-    m_elemets.push_back(new PointType(pointer->Position()));
-    m_counts.pop_back(1);
+    m_elemets.push_back(new ElementType(pointer->Position()));
+    m_counts.push_back(1);
+    return m_elemets.back();
 }
 
 template<typename TData>
