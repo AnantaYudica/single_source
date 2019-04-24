@@ -30,17 +30,26 @@ public:
     typedef TData DataType;
     typedef struc::tree::avl::intf::Edge<DataType> EdgeInterfaceType;
     typedef struc::tree::avl::intf::Node<DataType> NodeInterfaceType; 
-    typedef Node<DataType> NodeType;
+    typedef imp::file::Node<DataType> NodeType;
     typedef ::intf::File FileInterfaceType;
     typedef typename FileInterfaceType::PositionType PositionType;
+private:
+    template<typename ... TArgs>
+    static void CreateInstance(NodeType ** node, TArgs && ... args);
+    template<typename ... TArgs>
+    static void CreateInstance(NodeType *const* node, 
+        TArgs && ... args);
+private:
+    static void Reset(NodeType ** node);
+    static void Reset(NodeType *const* node);
 private:
     static void SetPosition(NodeType * point, const WayType & way,
         const PositionType & pos);
     static PositionType GetPosition(NodeType const* point, 
         const WayType & way);
 private:
-    NodeType m_point;
-    NodeType m_next;
+    NodeType * m_point;
+    NodeType * m_next;
     WayType m_way;
 public:
     Edge();
@@ -56,10 +65,6 @@ public:
 public:
     Edge<TData> & operator=(const NodeInterfaceType & node);
     Edge<TData> & operator=(NodeInterfaceType && node);
-private:
-    void Default();
-private:
-    bool IsNull() const;
 public:
     PositionType Position() const;
     void Position(const PositionType & pos);
