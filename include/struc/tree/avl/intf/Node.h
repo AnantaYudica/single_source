@@ -32,14 +32,20 @@ public:
     virtual Node<TData> & operator=(const Node<TData> &) = 0;
     virtual Node<TData> & operator=(Node<TData> &&) = 0;
 public:
+    virtual bool HasParent() const = 0;
+public:
     virtual Edge<TData> & Parent() = 0;
     virtual const Edge<TData> & Parent() const = 0;
 public:
-    virtual Edge<TData> & Right() = 0;
-    virtual const Edge<TData> & Right() const = 0;
+    virtual bool HasLeft() const = 0;
 public:
     virtual Edge<TData> & Left() = 0;
     virtual const Edge<TData> & Left() const = 0;
+public:
+    virtual bool HasRight() const = 0;
+public:
+    virtual Edge<TData> & Right() = 0;
+    virtual const Edge<TData> & Right() const = 0;
 public:
     virtual HightValueType Hight() const = 0;
     virtual void Hight(const HightValueType & set) = 0;
