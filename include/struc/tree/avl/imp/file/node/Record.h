@@ -74,12 +74,16 @@ private:
         const TValue & intf_rec, const SyncType & sync_flags, 
         SyncType sync_index_val);
 private:
-    template<typename TValue>
-    static SizeType Get(Record<TData> & rec, InputType & in, TValue & val, 
+    template<typename TValue> 
+    static typename std::enable_if<
+        !std::is_base_of<::intf::Record, TValue>::value, SizeType>::type 
+    Get(Record<TData> & rec, InputType & in, TValue & val, 
         SyncType & sync_flags, SyncType sync_index_val);
-    static SizeType Get(Record<TData> & rec, InputType & in, 
-        ::intf::Record & intf_rec, SyncType & sync_flags, 
-        SyncType sync_index_val);
+    template<typename TValue>
+    static typename std::enable_if<
+        std::is_base_of<::intf::Record, TValue>::value, SizeType>::type
+    Get(Record<TData> & rec, InputType & in, TValue & intf_rec, 
+        SyncType & sync_flags, SyncType sync_index_val);
 public:
     Record();
     ~Record();
@@ -158,7 +162,8 @@ Record<TData>::Put(const Record<TData> & rec, OutputType & out,
 {
     if (rec.IsInitial() || (sync_flags & sync_index_val))
     {
-        if (intf_rec.Put(out) == 0) return Bad<SizeType>(rec, 0);
+        if (static_cast<const TValue &>(intf_rec).Put(out) == 0) 
+            return Bad<SizeType>(rec, 0);
         if (sync_flags & sync_index_val)
             const_cast<SyncType &>(sync_flags) ^= sync_index_val;
     }
@@ -169,12 +174,15 @@ Record<TData>::Put(const Record<TData> & rec, OutputType & out,
 
 template<typename TData>
 template<typename TValue>
-typename Record<TData>::SizeType 
+typename std::enable_if<
+    !std::is_base_of<::intf::Record, TValue>::value, 
+    typename Record<TData>::SizeType>::type 
 Record<TData>::Get(Record<TData> & rec, InputType & in, TValue & val, 
     SyncType & sync_flags, SyncType sync_index_val)
 {
     char * buffer = reinterpret_cast<char *>(&val);
-    if (!in.CurrentGet(buffer, sizeof(TValue))) return Bad<SizeType>(rec, 0);
+    if (in.CurrentGet(buffer, sizeof(TValue)) == 0) 
+        return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
     in.SeekOffset(sizeof(TValue), WayType::current);
@@ -182,11 +190,15 @@ Record<TData>::Get(Record<TData> & rec, InputType & in, TValue & val,
 }
 
 template<typename TData>
-typename Record<TData>::SizeType 
+template<typename TValue>
+typename std::enable_if<
+    std::is_base_of<::intf::Record, TValue>::value, 
+    typename Record<TData>::SizeType>::type 
 Record<TData>::Get(Record<TData> & rec, InputType & in, 
-    ::intf::Record & intf_rec, SyncType & sync_flags, SyncType sync_index_val)
+    TValue & intf_rec, SyncType & sync_flags, SyncType sync_index_val)
 {
-    if (!intf_rec.Get(in)) return Bad<SizeType>(rec, 0);
+    if (static_cast<TValue &>(intf_rec).Get(in) == 0) 
+        return Bad<SizeType>(rec, 0);
     if (sync_flags & sync_index_val)
         sync_flags ^= sync_index_val;
     in.SeekOffset(static_cast<std::size_t>(::defn::rec::
@@ -356,7 +368,7 @@ const TData & Record<TData>::Data() const
 template<typename TData>
 void Record<TData>::Data(const TData & data)
 {
-    if (data == m_data) return;
+    if (data == static_cast<TData>(m_data)) return;
     m_data = data;
     m_sync_flags |= ms_data_sync;
     OutOfSynchronization(*this);
