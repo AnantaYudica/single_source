@@ -40,7 +40,7 @@ public:
     File & operator=(const File &) = delete;
     virtual File & operator=(File &&) = 0;
 public:
-    virtual bool IsOpen() = 0;
+    virtual bool IsOpen() const = 0;
 public:
     virtual File * Open(const std::string & pathname) = 0;
     virtual File * Open(const char * pathname) = 0;

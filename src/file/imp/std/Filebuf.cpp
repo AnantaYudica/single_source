@@ -25,7 +25,7 @@ Filebuf::operator=(FileInterfaceType && mov)
     return *this;
 }
 
-bool Filebuf::IsOpen()
+bool Filebuf::IsOpen() const
 {
     return m_filebuf.is_open();
 }

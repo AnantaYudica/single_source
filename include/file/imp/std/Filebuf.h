@@ -41,7 +41,7 @@ public:
     Filebuf & operator=(const Filebuf &) = delete;
     FileInterfaceType & operator=(FileInterfaceType && mov);
 public:
-    bool IsOpen();
+    bool IsOpen() const;
 public:
     FileInterfaceType * Open(const ::std::string & pathname);
     FileInterfaceType * Open(const char * pathname);

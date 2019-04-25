@@ -26,7 +26,7 @@ public:
 public:
     virtual ~Input() = default;
 public:
-    virtual bool IsOpen() = 0;
+    virtual bool IsOpen() const = 0;
 private:
     virtual PositionType SeekPosition(const PositionType & pos,
         const ModeValueType & mode) = 0; 
