@@ -53,6 +53,7 @@ private:
 public:
     Linear();
     Linear(const std::string & pathname);
+    ~Linear();
 public:
     Linear(const Linear & cpy);
     Linear(Linear && mov);

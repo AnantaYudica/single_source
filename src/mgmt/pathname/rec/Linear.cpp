@@ -13,6 +13,13 @@ Linear::Linear() :
     m_pathname()
 {}
 
+Linear::~Linear()
+{
+    m_sync_flags = 0;
+    m_flags = 0;
+    m_pathname.clear();
+}
+
 Linear::Linear(const std::string & pathname) :
     ::intf::Record(),
     m_sync_flags(ms_pathname_sync),
