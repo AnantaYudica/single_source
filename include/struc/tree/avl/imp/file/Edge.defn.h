@@ -72,6 +72,8 @@ public:
     void Synchronize(const bool & force);
     void Synchronize(const bool & force) const;
 public:
+    void Update();
+public:
     NodeInterfaceType & Get();
     const NodeInterfaceType & Get() const;
 public:

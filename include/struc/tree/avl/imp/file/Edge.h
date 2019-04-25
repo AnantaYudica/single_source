@@ -184,6 +184,7 @@ typename Edge<TData>::PositionType Edge<TData>::Position() const
 template<typename TData>
 void Edge<TData>::Position(const PositionType & pos)
 {
+    if (!m_point) return;
     SetPosition(m_point, m_way, pos);
 }
 
@@ -191,19 +192,8 @@ template<typename TData>
 void Edge<TData>::Synchronize(const bool & force)
 {
     if (!m_point) return;
-    const auto old_pos = GetPosition(m_point, m_way);
     m_point->Synchronize(force);
-    const auto pos = GetPosition(m_point, m_way);
-    if (pos == -1)
-    {
-        Reset(&m_next);
-    }
-    else if (pos != old_pos)
-    {
-        Reset(&m_next);
-        CreateInstance(&m_next, std::move(m_point->Instance(
-            GetPosition(m_point, m_way))));
-    }
+    Update();
 }
 
 template<typename TData>
@@ -211,6 +201,17 @@ void Edge<TData>::Synchronize(const bool & force) const
 {
     auto cast_edge = const_cast<Edge<TData> *>(this);
     cast_edge->Synchronize(force);
+}
+
+template<typename TData>
+void Edge<TData>::Update()
+{
+    const auto pos = GetPosition(m_point, m_way);
+    if (pos == -1) Reset(&m_next);
+    else if (m_next && pos != m_next->Position())
+        *m_next = std::move(m_point->Instance(pos));
+    else if (!m_next && pos != -1)
+        CreateInstance(&m_next, std::move(m_point->Instance(pos)));
 }
 
 template<typename TData>
