@@ -106,7 +106,9 @@ Node<TData>::Node(FileInterfacePointerType file,
         m_left(nullptr),
         m_file(file),
         m_fileFormatLinear(format)
-{}
+{
+    CreateInstance(&m_point, -1);
+}
 
 template<typename TData>
 Node<TData>::Node(FileInterfacePointerType file, 
@@ -118,17 +120,11 @@ Node<TData>::Node(FileInterfacePointerType file,
         m_file(file),
         m_fileFormatLinear(format)
 {
+    CreateInstance(&m_point, position);
     if (position != -1 && IsValid()) 
     {
-        CreateInstance(&m_point, position);
         m_fileFormatLinear->SeekPosition(position);
         m_fileFormatLinear->CurrentGet(m_point->Record());
-        if (m_point->Record().Parent() != -1)
-            CreateInstance(&m_parent, *this, EdgeWayType::parent);
-        if (m_point->Record().Left() != -1)
-            CreateInstance(&m_left, *this, EdgeWayType::left);
-        if (m_point->Record().Right() != -1)
-            CreateInstance(&m_right, *this, EdgeWayType::right);
     }
 }
 
@@ -150,15 +146,12 @@ Node<TData>::Node(const Node<TData> & cpy) :
     m_file(cpy.m_file),
     m_fileFormatLinear(cpy.m_fileFormatLinear)
 {
+    CreateInstance(&m_point, cpy.m_point);
     if (cpy)
     {
-        CreateInstance(&m_point, cpy.m_point);
-        if (cpy.HasParent())
-            CreateInstance(&m_parent, *this, EdgeWayType::parent);
-        if (cpy.HasLeft())
-            CreateInstance(&m_left, *this, EdgeWayType::left);
-        if (cpy.HasRight())
-            CreateInstance(&m_right, *this, EdgeWayType::right);
+        if (cpy.m_parent) CreateInstance(&m_parent, *(cpy.m_parent));
+        if (cpy.m_left) CreateInstance(&m_left, *(cpy.m_left));
+        if (cpy.m_right) CreateInstance(&m_right, *(cpy.m_right));
     }
 }
 
@@ -183,16 +176,16 @@ template<typename TData>
 Node<TData> & Node<TData>::operator=(const Node<TData> & cpy)
 {
     Reset(&m_point);
-    CreateInstance(&m_point, cpy.m_point);
     Reset(&m_parent);
-    if (cpy.HasParent())
-        CreateInstance(&m_parent, *this, EdgeWayType::parent);
     Reset(&m_left);
-    if (cpy.HasLeft())
-        CreateInstance(&m_left, *this, EdgeWayType::left);
     Reset(&m_right);
-    if (cpy.HasRight())
-        CreateInstance(&m_right, *this, EdgeWayType::right);
+    CreateInstance(&m_point, cpy.m_point);
+    if (cpy)
+    {
+        if (cpy.m_parent) CreateInstance(&m_parent, *(cpy.m_parent));
+        if (cpy.m_left) CreateInstance(&m_left, *(cpy.m_left));
+        if (cpy.m_right) CreateInstance(&m_right, *(cpy.m_right));
+    }
     m_file = cpy.m_file;
     m_fileFormatLinear = cpy.m_fileFormatLinear;
     return *this;
@@ -270,13 +263,15 @@ typename Node<TData>::PositionType Node<TData>::Position() const
 template<typename TData>
 bool Node<TData>::HasParent() const
 {
-    return m_parent != nullptr;
+    return Position() != -1 && m_point && m_point->Record().Parent() != -1;
 }
 
 template<typename TData>
 typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Parent()
 {
+    if (!m_parent && Position() != -1)
+        CreateInstance(&m_parent, *this, EdgeWayType::parent);
     return *m_parent;
 }
 
@@ -284,6 +279,8 @@ template<typename TData>
 const typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Parent() const
 {
+    if (!m_parent && Position() != -1)
+        CreateInstance(&m_parent, *this, EdgeWayType::parent);
     return *m_parent;
 }
 
@@ -291,26 +288,29 @@ template<typename TData>
 typename Node<TData>::PositionType 
 Node<TData>::ParentPosition() const
 {
+    if (!m_point) return -1;
     return m_point->Record().Parent();
 }
 
 template<typename TData>
 void Node<TData>::ParentPosition(const PositionType & new_position)
 {
-    if (!m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Parent(new_position);
 }
 
 template<typename TData>
 bool Node<TData>::HasLeft() const
 {
-    return m_left != nullptr;
+    return Position() != -1 && m_point->Record().Left() != -1;
 }
 
 template<typename TData>
 typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Left()
 {
+    if (!m_left && Position() != -1)
+        CreateInstance(&m_left, *this, EdgeWayType::left);
     return *m_left;
 }
 
@@ -318,6 +318,8 @@ template<typename TData>
 const typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Left() const
 {
+    if (!m_left && Position() != -1)
+        CreateInstance(&m_left, *this, EdgeWayType::left);
     return *m_left;
 }
 
@@ -325,26 +327,29 @@ template<typename TData>
 typename Node<TData>::PositionType 
 Node<TData>::LeftPosition() const
 {
+    if (!m_point) return -1;
     return m_point->Record().Left();
 }
 
 template<typename TData>
 void Node<TData>::LeftPosition(const PositionType & new_position)
 {
-    if (!m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Left(new_position);
 }
 
 template<typename TData>
 bool Node<TData>::HasRight() const
 {
-    return m_right != nullptr;
+    return Position() != -1 && m_point->Record().Right() != -1;
 }
 
 template<typename TData>
 typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Right()
 {
+    if (!m_right && Position() != -1)
+        CreateInstance(&m_right, *this, EdgeWayType::right);
     return *m_right;
 }
 
@@ -352,6 +357,8 @@ template<typename TData>
 const typename Node<TData>::EdgeInterfaceType & 
 Node<TData>::Right() const
 {
+    if (!m_right && Position() != -1)
+        CreateInstance(&m_right, *this, EdgeWayType::right);
     return *m_right;
 }
 
@@ -359,39 +366,42 @@ template<typename TData>
 typename Node<TData>::PositionType 
 Node<TData>::RightPosition() const
 {
+    if (!m_point) return -1;
     return m_point->Record().Right();
 }
 
 template<typename TData>
 void Node<TData>::RightPosition(const PositionType & new_position)
 {
-    if (m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Right(new_position);
 }
 
 template<typename TData>
 typename Node<TData>::HightValueType Node<TData>::Hight() const
 {
+    if (Position() == -1) return 0;
     return m_point->Record().Hight();
 }
 
 template<typename TData>
 void Node<TData>::Hight(const HightValueType & set)
 {
-    if (m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Hight(set);
 }
 
 template<typename TData>
 bool Node<TData>::IsDeleted() const
 {
+    if (Position() == -1) return true;
     return m_point->Record().Flags() & RecordType::delete_flag;
 }
 
 template<typename TData>
 void Node<TData>::Delete()
 {
-    if (m_point && m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Flags(m_point->Record().Flags() | 
         RecordType::delete_flag);
 }
@@ -399,20 +409,21 @@ void Node<TData>::Delete()
 template<typename TData>
 TData Node<TData>::Data() const
 {
+    if (Position() == -1) return TData();
     return m_point->Record().Data();
 }
 
 template<typename TData>
 void Node<TData>::Data(const TData & data)
 {
-    if (m_point && m_point->Position() == -1) return;
+    if (Position() == -1) return;
     m_point->Record().Data(data);
 }
 
 template<typename TData>
 int Node<TData>::Balance() const
 {
-    if (!m_point || m_point->Position() == -1) return 0;
+    if (Position() == -1) return 0;
     HightValueType left = 0, right = 0;
     if (HasRight()) right = (*m_right)->Hight();
     if (HasLeft()) left = (*m_left)->Hight();
@@ -422,7 +433,7 @@ int Node<TData>::Balance() const
 template<typename TData>
 void Node<TData>::Synchronize(const bool & force)
 {
-    if (m_point->Position() == -1) return;
+    if (Position() == -1) return;
     auto & rec = m_point->Record();
     m_fileFormatLinear->SeekPosition(m_point->Position());
     if (force || rec.IsInitial())
@@ -433,12 +444,29 @@ void Node<TData>::Synchronize(const bool & force)
     {
         m_fileFormatLinear->CurrentPut(rec);
     }
+    Update();
 }
 
 template<typename TData>
 void Node<TData>::Synchronize(const bool & force) const
 {
     const_cast<Node<TData>*>(this)->Synchronize(force);
+}
+
+template<typename TData>
+void Node<TData>::Update()
+{
+    if (m_parent) m_parent->Update();
+    else if (!m_parent && ParentPosition() != -1)
+        CreateInstance(&m_parent, *this, EdgeWayType::parent);
+    
+    if (m_left) m_left->Update();
+    else if (!m_left && LeftPosition() != -1)
+        CreateInstance(&m_left, *this, EdgeWayType::left);
+    
+    if (m_right) m_right->Update();
+    else if (!m_right && RightPosition() != -1)
+        CreateInstance(&m_right, *this, EdgeWayType::right);
 }
 
 template<typename TData>
@@ -459,8 +487,7 @@ bool Node<TData>::operator!=(const NodeInterfaceType & other) const
 template<typename TData>
 Node<TData>::operator bool() const
 {
-    return IsValid() && m_point &&
-        m_point->Position() != -1 && !IsDeleted();
+    return IsValid() && Position() != -1 && !IsDeleted();
 }
 
 } //file
