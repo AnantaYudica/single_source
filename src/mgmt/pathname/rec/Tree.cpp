@@ -1,6 +1,7 @@
 #include "mgmt/pathname/rec/Tree.h"
 
 #include <utility>
+#include <string>
 
 using namespace std;
 using namespace mgmt::pathname::rec;
@@ -25,6 +26,12 @@ Tree::Tree(const std::string & pathname) :
     m_position(-1),
     m_pathname(pathname)
 {}
+
+Tree::~Tree()
+{
+    m_sync_flags = 0;
+    m_position = -1;
+}
 
 Tree::Tree(const Tree & cpy) :
     ::intf::Record(cpy),
@@ -117,7 +124,7 @@ typename Tree::SizeType Tree::Get(InputType & in)
 
 bool Tree::operator==(const RecordInterfaceType & rec) const
 {
-    auto * rec_tree = dynamic_cast<const Tree *>(&rec);
+    auto rec_tree = dynamic_cast<Tree const*>(&rec);
     if (!rec_tree) return false;
     if (rec_tree->m_position == m_position)
         return true;

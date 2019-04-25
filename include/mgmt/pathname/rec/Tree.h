@@ -47,6 +47,7 @@ public:
     Tree();
     Tree(const FilePositionType & pos);
     Tree(const std::string & pathname);
+    ~Tree();
 public:
     Tree(const Tree & cpy);
     Tree(Tree && mov);
