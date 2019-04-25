@@ -112,12 +112,13 @@ void File::Emplace(intf::Edge<TData> & edge, const TData & data)
 {
     auto cast_edge = dynamic_cast<imp::file::Edge<TData> *>(&edge);
     if (!cast_edge) return;
-    auto cast_node = dynamic_cast<imp::file::Node<TData> *>(&*edge);
+    auto cast_node = dynamic_cast<imp::file::Node<TData> *>(&(cast_edge->Get()));
+    if (!cast_node) return;
     auto pos = cast_node->Allocate();
     if (pos == -1) return;
     imp::file::Node<TData> node = cast_node->Instance(pos);
     node.Data(data);
-    node.ParentPosition(cast_edge->Position());
+    node.ParentPosition(cast_node->Position());
     node.Synchronize(false);
     cast_edge->Position(pos);
     cast_edge->Synchronize(false);
@@ -155,6 +156,7 @@ void File::Displace(intf::Node<TData> & node)
     cast_node->RightPosition(-1);
     cast_node->Delete();
     cast_node->Synchronize(false);
+    *cast_node = std::move(cast_node->Instance(-1));
 }
 
 template<typename TData>
