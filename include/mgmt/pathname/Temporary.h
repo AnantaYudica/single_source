@@ -10,8 +10,8 @@
 #include "../../intf/File.h"
 #include "../../file/format/Linear.h"
 #include "../../struc/tree/avl/intf/Node.h"
-#include "../../struc/tree/avl/intf/Pointer.h"
-#include "../../struc/tree/avl/imp/file/Pointer.h"
+#include "../../struc/tree/avl/intf/Edge.h"
+#include "../../struc/tree/avl/imp/file/Edge.h"
 #include "../../struc/tree/avl/imp/file/Node.h"
 #include "../../struc/tree/AVL.h"
 
@@ -39,12 +39,8 @@ public:
     typedef file::format::Linear FileFormatLinearType;
     typedef typename FileFormatLinearType::PointerType
         FileFormatLinearPointerType;
-    typedef struc::tree::avl::intf::
-        Pointer<TreeRecordType> TreePointerType;
-    typedef struc::tree::avl::intf::
-        Node<TreeRecordType> TreeNodeType;
-    typedef typename TreeNodeType::PointerType 
-        TreeNodePointerType;
+    typedef struc::tree::avl::imp::file::Edge<TreeRecordType> TreeEdgeType;
+    typedef struc::tree::avl::imp::file::Node<TreeRecordType> TreeNodeType;
     typedef struc::tree::AVL TreeType;
     using CompareFunctionType = int(const TreeRecordType &, 
         const TreeRecordType &);
@@ -56,7 +52,7 @@ private:
     FileInterfacePointerType m_tree_file;
     FileFormatLinearPointerType m_linear_format_file;
     FileFormatLinearPointerType m_tree_format_file;
-    TreeNodePointerType m_tree_root_node;
+    TreeNodeType m_tree_root_node;
     TreeType m_tree;
     std::function<CompareFunctionType> m_compare_func;
 public:

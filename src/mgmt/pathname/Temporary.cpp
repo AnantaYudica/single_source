@@ -1,5 +1,6 @@
 #include "mgmt/pathname/Temporary.h"
 #include "file/imp/std/Filebuf.h"
+#include "struc/tree/avl/trait/File.h"
 
 #include <cstdio>
 #include <utility>
@@ -41,19 +42,18 @@ Temporary::Temporary(Temporary && mov) :
     mov.m_tree_str.clear();
     mov.m_linear_file.reset();
     mov.m_tree_file.reset();
-    mov.m_tree_root_node.reset();
     m_compare_func = bind(&Temporary::Compare, this, placeholders::_1, 
         placeholders::_2);
 }
 
 Temporary::~Temporary()
 {
-    if (m_linear_file->IsOpen())
+    if (m_linear_file && m_linear_file->IsOpen())
     {
         m_linear_file->Close();
         remove(m_linear_str.c_str());
     }
-    if (m_tree_file->IsOpen())
+    if (m_tree_file && m_tree_file->IsOpen())
     {
         m_tree_file->Close();
         remove(m_tree_str.c_str());
@@ -85,8 +85,7 @@ bool Temporary::Initialize()
             avl::imp::file::Node<TreeRecordType>::RecordType>::Value;
         m_tree_format_file = move(FileFormatLinearPointerType(
             new FileFormatLinearType(m_tree_file, size)));
-        m_tree_root_node = move(TreeNodePointerType(new struc::tree::avl::
-            imp::file::Node<TreeRecordType>(m_tree_file, m_tree_format_file)));
+        m_tree_root_node = move(TreeNodeType(m_tree_file, m_tree_format_file));
     }
     m_compare_func = bind(&Temporary::Compare, this, placeholders::_1, 
         placeholders::_2);
@@ -134,8 +133,8 @@ Temporary::Insert(const PathnameType & pathname)
     m_linear_format_file->Put(linear_record);
     tree_record.Position(key);
     tree_record.Pathname(pathname.String());
-    m_tree_root_node = m_tree.Insert(m_tree_root_node, tree_record,
-        m_compare_func);
+    m_tree.Insert<struc::tree::avl::trait::File>(m_tree_root_node, 
+        tree_record, m_compare_func);
     return key;
 }
 
@@ -152,8 +151,8 @@ typename Temporary::PathnameType Temporary::Remove(const KeyValueType & key)
     m_linear_format_file->Put(linear_record);
     tree_record.Position(key);
     tree_record.Pathname(linear_record.Value());
-    m_tree_root_node = m_tree.Erase(m_tree_root_node, tree_record,
-        m_compare_func);
+    m_tree.Erase<struc::tree::avl::trait::File>(m_tree_root_node, 
+        tree_record, m_compare_func);
     return PathnameType(linear_record.Value());
 }
 
@@ -164,15 +163,15 @@ void Temporary::Remove(const PathnameType & pathname)
     LinearRecordType linear_record;
     tree_record.Position(-1);
     tree_record.Pathname(pathname.String());
-    auto node = m_tree.Find(m_tree_root_node, tree_record, m_compare_func);
-    auto fn = **node;
-    if(!*node && !fn.IsGood() && fn.Position() != -1) return;
-    m_linear_format_file->SeekPosition(fn.Position());
+    tree_record = m_tree.Find(m_tree_root_node, tree_record, m_compare_func);
+    if(!tree_record.IsGood() && tree_record.Position() != -1) return;
+    m_linear_format_file->SeekPosition(tree_record.Position());
     m_linear_format_file->Get(linear_record);
     if (!linear_record.IsGood()) return;
     linear_record.Delete();
     m_linear_format_file->Put(linear_record);
-    m_tree_root_node = m_tree.Erase(m_tree_root_node, fn, m_compare_func);
+    m_tree.Erase<struc::tree::avl::trait::File>(m_tree_root_node, 
+        tree_record, m_compare_func);
 }
 
 typename Temporary::PathnameType 
@@ -184,6 +183,7 @@ Temporary::Get(const KeyValueType & key)
     m_linear_format_file->SeekPosition(key);
     m_linear_format_file->Get(linear_record);
     if (!linear_record.IsGood()) return PathnameType();
+    if (linear_record.IsDelete()) return PathnameType();
     return PathnameType(linear_record.Value());
 }
 
@@ -194,30 +194,19 @@ Temporary::Get(const PathnameType & pathname)
     TreeRecordType tree_record;
     tree_record.Position(-1);
     tree_record.Pathname(pathname.String());
-    auto node = m_tree.Find(m_tree_root_node, tree_record, m_compare_func);
-    auto fn = **node;
-    if(!*node && !fn.IsGood() && fn.Position() != -1) return -1;
-    return fn.Position();
+    tree_record = m_tree.Find(m_tree_root_node, tree_record, m_compare_func);
+    if(!tree_record.IsGood() && tree_record.Position() != -1) return -1;
+    return tree_record.Position();
 }
 
 bool Temporary::Has(const KeyValueType & key)
 {
     if (!m_initial && key != -1) return false;
-    LinearRecordType linear_record;
-    m_linear_format_file->SeekPosition(key);
-    m_linear_format_file->Get(linear_record);
-    if (!linear_record.IsGood()) return false;
-    return !linear_record.IsDelete();
+    return static_cast<bool>(Get(key));
 }
 
 bool Temporary::Has(const PathnameType & pathname)
 {
     if (!m_initial && !pathname) return false;
-    TreeRecordType tree_record;
-    tree_record.Position(-1);
-    tree_record.Pathname(pathname.String());
-    auto node = m_tree.Find(m_tree_root_node, tree_record, m_compare_func);
-    auto fn = **node;
-    if(!*node && !fn.IsGood() && fn.Position() != -1) return false;
-    return Has(fn.Position());
+    return Get(pathname) != -1;
 }
