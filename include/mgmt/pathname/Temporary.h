@@ -36,7 +36,7 @@ public:
     typedef defn::file::Mode ModeType;
     typedef defn::file::ModeValueType ModeValueType;
     typedef defn::file::Way WayType;
-    typedef file::format::Linear FileFormatLinearType;
+    typedef ::file::format::Linear FileFormatLinearType;
     typedef typename FileFormatLinearType::PointerType
         FileFormatLinearPointerType;
     typedef struc::tree::avl::imp::file::Edge<TreeRecordType> TreeEdgeType;
