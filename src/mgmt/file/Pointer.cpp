@@ -71,7 +71,7 @@ void Pointer::Reset()
 {
     if (m_key != -1)
     {
-        m_mutex->unlock();
+        if (m_lock) m_mutex->unlock();
         mgmt::File::GetInstance().Deallocate(*this);
     }
     m_lock = false;
