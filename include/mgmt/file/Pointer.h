@@ -12,6 +12,7 @@
 #include "../../intf/File.h"
 
 #include <mutex>
+#include <atomic>
 
 namespace mgmt
 {
@@ -35,9 +36,11 @@ private:
     KeyPathnameType m_key;
     std::mutex * m_mutex;
     intf::File * m_file;
+    std::atomic_size_t * m_count;
 public:
     Pointer();
-    Pointer(const KeyPathnameType & key, intf::File * file, std::mutex * lock);
+    Pointer(const KeyPathnameType & key, intf::File * file, std::mutex * lock,
+        std::atomic_size_t * count);
     ~Pointer();
 public:
     Pointer(const Pointer & cpy);

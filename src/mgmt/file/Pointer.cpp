@@ -10,16 +10,20 @@ Pointer::Pointer() :
     m_lock(false),
     m_mutex(nullptr),
     m_key(-1),
-    m_file(nullptr)
+    m_file(nullptr),
+    m_count(nullptr)
 {}
 
 Pointer::Pointer(const KeyPathnameType & key, intf::File * file, 
-    std::mutex * lock) :
+    std::mutex * lock, std::atomic_size_t * count) :
         m_lock(false),
         m_mutex(lock),
         m_key(key),
-        m_file(file)
-{}
+        m_file(file),
+        m_count(count)
+{
+    if (m_key != -1) ++(*count);
+}
 
 Pointer::~Pointer()
 {
@@ -30,20 +34,23 @@ Pointer::Pointer(const Pointer & cpy) :
     m_lock(false),
     m_mutex(cpy.m_mutex),
     m_key(cpy.m_key),
-    m_file(cpy.m_file)
+    m_file(cpy.m_file),
+    m_count(cpy.m_count)
 {
-    if (m_key != -1) mgmt::File::GetInstance().Bind(m_key);
+    if (m_key != -1) ++(*m_count);
 }
 
 Pointer::Pointer(Pointer && mov) :
     m_lock(mov.m_lock),
     m_mutex(mov.m_mutex),
     m_key(mov.m_key),
-    m_file(mov.m_file)
+    m_file(mov.m_file),
+    m_count(mov.m_count)
 {
     mov.m_mutex = nullptr;
     mov.m_key = -1;
     mov.m_file = nullptr;
+    mov.m_count = nullptr;
 }
 
 Pointer & Pointer::operator=(const Pointer & cpy)
@@ -53,7 +60,8 @@ Pointer & Pointer::operator=(const Pointer & cpy)
     m_mutex = cpy.m_mutex;
     m_key = cpy.m_key;
     m_file = cpy.m_file;
-    if (m_key != -1) mgmt::File::GetInstance().Bind(m_key);
+    m_count = cpy.m_count;
+    if (m_key != -1) ++(*m_count);
     return *this;
 }
 
@@ -64,6 +72,7 @@ Pointer & Pointer::operator=(Pointer && mov)
     m_mutex = mov.m_mutex;
     m_key = mov.m_key;
     m_file = mov.m_file;
+    m_count = mov.m_count;
     return *this;
 }
 
@@ -72,12 +81,14 @@ void Pointer::Reset()
     if (m_key != -1)
     {
         if (m_lock) m_mutex->unlock();
+        --m_count;
         mgmt::File::GetInstance().Deallocate(*this);
     }
     m_lock = false;
     m_mutex = nullptr;
     m_key = -1;
     m_file = nullptr;
+    m_count = nullptr;
 }
 
 typename Pointer::KeyPathnameType Pointer::KeyPathname() const

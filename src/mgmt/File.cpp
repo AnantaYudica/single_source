@@ -32,7 +32,6 @@ void File::Deallocate(FilePointerType & pointer)
     auto fn = m_elements.find(key);
     if (fn != m_elements.end())
     {
-        m_counts[key]--;
         if (m_counts[key] == 0)
         {
             {
@@ -66,20 +65,12 @@ void File::Close(const KeyPathnameType & key)
     fn->second->Close();
 }
 
-void File::Bind(const KeyPathnameType & key)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto fn = m_counts.find(key);
-    if (fn == m_counts.end()) return;
-    fn->second++;
-}
-
 typename File::FilePointerType File::Get(const KeyPathnameType & key)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     auto fn = m_elements.find(key);
-    if (fn == m_elements.end()) return FilePointerType(-1, nullptr, nullptr);
-    return FilePointerType(key, fn->second, m_mutexes[key]);
+    if (fn == m_elements.end()) return FilePointerType();
+    return FilePointerType(key, fn->second, m_mutexes[key], &m_counts[key]);
 }
 
 bool File::Has(const KeyPathnameType & key)

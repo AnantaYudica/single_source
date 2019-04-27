@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <atomic>
 #include <cstddef>
 #include <utility>
 
@@ -24,7 +25,7 @@ public:
     static File & GetInstance();
 private:
     std::map<KeyPathnameType, FileInterfaceType *> m_elements;
-    std::map<KeyPathnameType, std::size_t> m_counts;
+    std::map<KeyPathnameType, std::atomic_size_t> m_counts;
     std::map<KeyPathnameType, std::mutex *> m_mutexes;
     std::mutex m_mutex;
 private:
@@ -40,8 +41,6 @@ public:
     bool Open(const KeyPathnameType & key);
 public:
     void Close(const KeyPathnameType & key);
-public:
-    void Bind(const KeyPathnameType & key);
 public:
     FilePointerType Get(const KeyPathnameType & key);
 public:
@@ -67,9 +66,10 @@ typename File::FilePointerType File::Allocate(const KeyPathnameType & key,
         m_elements.insert(std::make_pair(key, new_element));
         m_counts.insert(std::make_pair(key, 1));
         m_mutexes.insert(std::make_pair(key, new std::mutex()));
-        return FilePointerType(key, new_element, m_mutexes[key]);
+        return FilePointerType(key, new_element, m_mutexes[key], 
+            &m_counts[key]);
     }
-    return FilePointerType(key, fn->second, m_mutexes[key]);
+    return FilePointerType(key, fn->second, m_mutexes[key], &m_counts[key]);
 }
 
 } //!mgmt
