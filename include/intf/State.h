@@ -1,7 +1,8 @@
 #ifndef INTF_STATE_H_
 #define INTF_STATE_H_
 
-#include "state/Message.h"
+#include "state/Character.h"
+#include "Message.decl.h"
 
 namespace intf
 {
@@ -13,9 +14,18 @@ protected:
 public:
     virtual ~State() = default;
 public:
-    virtual bool Symbol(const char & ch) = 0;
+    State(const State &) = delete;
+    State(State &&) = default;
 public:
-    virtual state::Message Transition() = 0;
+    State & operator=(const State &) = delete;
+    State & operator=(State &&) = delete;
+public:
+    virtual bool Input(state::Character & ch) = 0;
+public:
+    virtual state::Message & Transition() = 0;
+public:
+    virtual bool operator==(const State & other) = 0;
+    virtual bool operator!=(const State & other) = 0;
 };
 
 } //!intf
